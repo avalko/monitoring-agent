@@ -40,13 +40,12 @@ namespace MonitoringAgent
             Console.WriteLine("Started monitoring...");
             agent.Start(port);
 
+            if (args.Length > 1 && args[1] == "daemon")
+                Thread.Sleep(Timeout.Infinite);
+
             Console.WriteLine("Press Enter to exit.");
             Console.Read();
-            try
-            {
-                agent.Stop();
-            }
-            catch { }
+            agent.Stop();
 
             return 0;
         }

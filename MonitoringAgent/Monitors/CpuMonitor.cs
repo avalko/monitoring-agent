@@ -47,6 +47,8 @@ namespace MonitoringAgent.Monitors
             int total = active + idle;
 
             _value.LoadPercent = active * 100.0 / total;
+            if (_value.LoadPercent > _value.MaxLoadPercent)
+                _value.MaxLoadPercent = _value.LoadPercent;
 
             _value.LastRealActive = lastActive;
             _value.LastRealIdle = lastIdle;
@@ -66,6 +68,7 @@ namespace MonitoringAgent.Monitors
         class CpuData
         {
             public double LoadPercent { get; set; }
+            public double MaxLoadPercent { get; set; }
 
             [JsonIgnore]
             public int LastActive { get; set; }

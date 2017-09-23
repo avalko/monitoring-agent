@@ -51,6 +51,11 @@ namespace MonitoringAgent.Monitors
                 data.ReadBytes = currentBytesReads - data.LastReadBytes;
                 data.WriteBytes = currentBytesWrites - data.LastWriteBytes;
 
+                if (data.ReadBytes > data.MaxReadBytes)
+                    data.MaxReadBytes = data.ReadBytes;
+                if (data.WriteBytes > data.MaxWriteBytes)
+                    data.MaxWriteBytes = data.WriteBytes;
+
                 data.LastRealReadBytes = currentBytesReads;
                 data.LastRealWriteBytes = currentBytesWrites;
             }
@@ -74,6 +79,8 @@ namespace MonitoringAgent.Monitors
         {
             public int ReadBytes { get; set; }
             public int WriteBytes { get; set; }
+            public int MaxReadBytes { get; set; }
+            public int MaxWriteBytes { get; set; }
 
             [JsonIgnore]
             public int LastReadBytes { get; set; }

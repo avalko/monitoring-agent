@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,7 +13,7 @@ namespace MonitoringAgent
     {
         private static List<IMonitor> _monitors = new List<IMonitor>();
 
-        public void Start(int timeout)
+        public void Start(int timeout, string fileOut)
         {
             _Init();
 
@@ -21,13 +22,20 @@ namespace MonitoringAgent
                 Thread.Sleep(timeout);
 
                 _monitors.ForEach(monitor => monitor.Update());
-                
-                Console.Clear();
-                _monitors.ForEach(monitor => Console.WriteLine(
-                    (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
-                    .Title + ": " + monitor.GetJson()));
-                if (Console.IsOutputRedirected)
-                    Console.Out.Flush();
+
+                if (fileOut != null)
+                {
+                    _monitors.ForEach(monitor => File.WriteAllText(fileOut,
+                        (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
+                        .Title + ": " + monitor.GetJson()));
+                }
+                else
+                {
+                    Console.Clear();
+                    _monitors.ForEach(monitor => Console.WriteLine(
+                        (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
+                        .Title + ": " + monitor.GetJson()));
+                }
 
                 _monitors.ForEach(monitor => monitor.Update());
             }

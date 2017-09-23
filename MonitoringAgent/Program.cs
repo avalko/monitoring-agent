@@ -26,21 +26,20 @@ namespace MonitoringAgent
 #endif
 
             int timeout = 1000;
+            string fileOut = null;
 
             if (args.Length > 0)
             {
-                if (int.TryParse(args[0], out int newTimeout))
+                if (int.TryParse(args[0], out int newTimeout) && newTimeout > 0)
                 {
-                    timeout = newTimeout;
+                    timeout = newTimeout;                    
                 }
-                else
-                {
-                    if (File.Exists(args[0]))
-                        Console.SetOut(new StreamWriter(args[0]));
-                }
+
+                if (args.Length > 1 && File.Exists(args[1]))
+                    fileOut = args[1];
             }
 
-            new Agent().Start(timeout);
+            new Agent().Start(timeout, fileOut);
             Thread.Sleep(Timeout.Infinite);
 
             return 0;

@@ -11,9 +11,8 @@ namespace MonitoringAgent
     class Agent
     {
         private static List<IMonitor> _monitors = new List<IMonitor>();
-        public static int TIMEOUT = 100;
 
-        public void Start()
+        public void Start(int timeout)
         {
             _Init();
 
@@ -22,7 +21,7 @@ namespace MonitoringAgent
 
             while (true)
             {
-                Thread.Sleep(TIMEOUT);
+                Thread.Sleep(timeout);
 
                 _monitors.ForEach(monitor => monitor.Next());
 

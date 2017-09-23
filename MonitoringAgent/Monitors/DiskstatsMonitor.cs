@@ -39,8 +39,6 @@ namespace MonitoringAgent.Monitors
             _scanf = Scanf.Create("%i %i %s %i %i %i %i %i %i %i %i %i %i %i");
             _hwSectorSize = int.Parse(await VirtualFile.ReadLineAsync(_pathToHwSectorSize));
 
-            Console.WriteLine(_hwSectorSize);
-
             var disks = (await _ReadToEndAsync()).SplitLines();
             foreach (var disk in disks)
             {

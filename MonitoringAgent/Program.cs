@@ -24,7 +24,15 @@ namespace MonitoringAgent
             // Nothing...
 #endif
 
-            new Agent().Start();
+            int timeout = 1000;
+
+            if (args.Length > 0)
+            {
+                if (int.TryParse(args[0], out int newTimeout))
+                    timeout = newTimeout;
+            }
+
+            new Agent().Start(timeout);
             Thread.Sleep(Timeout.Infinite);
 
             return 0;

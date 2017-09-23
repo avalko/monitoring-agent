@@ -15,7 +15,8 @@ namespace MonitoringAgent.Monitors
         public override void Init()
         {
             /**
-             * major minor name RIO rmerge rsect ruse WIO wmerge wsect wuse running use aveq
+             *                               v                     v
+             * major minor name rio rmerge rsect ruse wio wmerge wsect wuse running use aveq
              **/
             _scanf = Scanf.Create("%i %i %s %i %i %i %i %i %i %i %i %i %i %i");
             _hwSectorSize = int.Parse(VirtualFile.ReadLine(VirtualFile.PathToHWSectorSize));
@@ -24,8 +25,8 @@ namespace MonitoringAgent.Monitors
             foreach (var disk in disks)
             {
                 var diskMatches = _scanf.Matches(disk);
-                int readBytes = (int)diskMatches[3] * _hwSectorSize;
-                int writBytes = (int)diskMatches[7] * _hwSectorSize;
+                int readBytes = (int)diskMatches[5] * _hwSectorSize;
+                int writBytes = (int)diskMatches[9] * _hwSectorSize;
 
                 _values[diskMatches[2] as string] = new DiskastatsData()
                 {
@@ -45,8 +46,8 @@ namespace MonitoringAgent.Monitors
                 var diskMatches = _scanf.Matches(disk);
                 var data = _values[diskMatches[2] as string];
 
-                int currentBytesReads = (int)diskMatches[3] * _hwSectorSize;
-                int currentBytesWrites = (int)diskMatches[7] * _hwSectorSize;
+                int currentBytesReads = (int)diskMatches[5] * _hwSectorSize;
+                int currentBytesWrites = (int)diskMatches[9] * _hwSectorSize;
 
                 data.ReadBytes = currentBytesReads - data.LastReadBytes;
                 data.WriteBytes = currentBytesWrites - data.LastWriteBytes;

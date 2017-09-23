@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.Loader;
 using System.Threading;
 
@@ -29,7 +30,14 @@ namespace MonitoringAgent
             if (args.Length > 0)
             {
                 if (int.TryParse(args[0], out int newTimeout))
+                {
                     timeout = newTimeout;
+                }
+                else
+                {
+                    if (File.Exists(args[0]))
+                        Console.SetOut(new StreamWriter(args[0]));
+                }
             }
 
             new Agent().Start(timeout);

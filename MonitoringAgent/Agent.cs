@@ -21,7 +21,7 @@ namespace MonitoringAgent
                 Thread.Sleep(timeout);
 
                 _monitors.ForEach(monitor => monitor.Update());
-
+                
                 Console.Clear();
                 _monitors.ForEach(monitor => Console.WriteLine(
                     (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)

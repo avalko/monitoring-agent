@@ -17,11 +17,8 @@ namespace MonitoringAgent.Monitors
             var cpu = VirtualFile.ReadLine(VirtualFile.PathToProcStat);
             var result = _scanf.Matches(cpu);
 
-            active = (int)result[1] +
-                     (int)result[2] +
-                     (int)result[3] +
-                     (int)result[5] +
-                     (int)result[6];
+            // skip name
+            active = result.Skip(1).Select(x => (int)x).Sum();
             idle = (int)result[4];
         }
 
@@ -34,11 +31,11 @@ namespace MonitoringAgent.Monitors
 
             _value = new CpuData();
             _GetCpuUsage(out int lastActive, out int lastIdle);
-            _value.LastRealActive = _value.LastActive = lastActive;
-            _value.LastRealActive = _value.LastIdle = lastIdle;
+            _value.LastActive = lastActive;
+            _value.LastIdle = lastIdle;
         }
 
-        public override void Next()
+        public override void Update()
         {
             _GetCpuUsage(out int lastActive, out int lastIdle);
 
@@ -50,14 +47,8 @@ namespace MonitoringAgent.Monitors
             if (_value.LoadPercent > _value.MaxLoadPercent)
                 _value.MaxLoadPercent = _value.LoadPercent;
 
-            _value.LastRealActive = lastActive;
-            _value.LastRealIdle = lastIdle;
-        }
-
-        public override void Update()
-        {
-            _value.LastActive = _value.LastRealActive;
-            _value.LastIdle = _value.LastRealIdle;
+            _value.LastActive = lastActive;
+            _value.LastIdle = lastIdle;
         }
 
         public override string GetJson()
@@ -74,10 +65,6 @@ namespace MonitoringAgent.Monitors
             public int LastActive { get; set; }
             [JsonIgnore]
             public int LastIdle { get; set; }
-            [JsonIgnore]
-            public int LastRealActive { get; set; }
-            [JsonIgnore]
-            public int LastRealIdle { get; set; }
         }
     }
 }

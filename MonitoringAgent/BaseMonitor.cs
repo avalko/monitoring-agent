@@ -18,10 +18,6 @@ namespace MonitoringAgent
         {
         }
 
-        public virtual void Next()
-        {
-        }
-
         public virtual void Update()
         {
         }

@@ -10,7 +10,13 @@ namespace MonitoringAgent
         public const string PathToHWSectorSize  = "/sys/block/sda/queue/hw_sector_size";
         public const string PathToDiskStats     = "/proc/diskstats";
         public const string PathToProcStat      = "/proc/stat";
+        public const string PathToMemInfo       = "/proc/meminfo";
 
+
+        public static StreamReader Open(string filePath)
+        {
+            return File.OpenText(filePath);
+        }
 
         public static string ReadLine(string filePath)
         {

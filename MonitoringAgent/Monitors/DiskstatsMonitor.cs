@@ -17,6 +17,7 @@ namespace MonitoringAgent.Monitors
             /**
              *                               v                     v
              * major minor name rio rmerge rsect ruse wio wmerge wsect wuse running use aveq
+             *   0     1     2   3     4     5     6   7     8     9     
              **/
             _scanf = Scanf.Create("%i %i %s %i %i %i %i %i %i %i %i %i %i %i");
             _hwSectorSize = int.Parse(VirtualFile.ReadLine(VirtualFile.PathToHWSectorSize));
@@ -31,14 +32,12 @@ namespace MonitoringAgent.Monitors
                 _values[diskMatches[2] as string] = new DiskastatsData()
                 {
                     LastReadBytes = readBytes,
-                    LastRealReadBytes = readBytes,
                     LastWriteBytes = writBytes,
-                    LastRealWriteBytes = writBytes,
                 };
             }
         }
 
-        public override void Next()
+        public override void Update()
         {
             var disks = VirtualFile.ReadToEnd(VirtualFile.PathToDiskStats).SplitLines();
             foreach (var disk in disks)
@@ -57,17 +56,8 @@ namespace MonitoringAgent.Monitors
                 if (data.WriteBytes > data.MaxWriteBytes)
                     data.MaxWriteBytes = data.WriteBytes;
 
-                data.LastRealReadBytes = currentBytesReads;
-                data.LastRealWriteBytes = currentBytesWrites;
-            }
-        }
-
-        public override void Update()
-        {
-            foreach (var disk in _values)
-            {
-                disk.Value.LastReadBytes = disk.Value.LastRealReadBytes;
-                disk.Value.LastWriteBytes = disk.Value.LastRealWriteBytes;
+                data.LastReadBytes = currentBytesReads;
+                data.LastWriteBytes = currentBytesWrites;
             }
         }
 
@@ -87,10 +77,6 @@ namespace MonitoringAgent.Monitors
             public int LastReadBytes { get; set; }
             [JsonIgnore]
             public int LastWriteBytes { get; set; }
-            [JsonIgnore]
-            public int LastRealReadBytes { get; set; }
-            [JsonIgnore]
-            public int LastRealWriteBytes { get; set; }
         }
     }
 }

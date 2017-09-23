@@ -8,7 +8,6 @@ namespace MonitoringAgent
     {
         void Init();
         string GetJson();
-        void Next();
         void Update();
     }
 }

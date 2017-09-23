@@ -53,7 +53,7 @@ namespace MonitoringAgent
                 return "(" + _patterns[type] + ")";
             });
 
-            pattern = pattern.Replace(" ", @"\s+");
+            pattern = pattern.RemoveMultipleSpaces().Replace(" ", @"\s+");
 
             return new Scanf(new Regex(pattern, RegexOptions.Compiled), types);
         }

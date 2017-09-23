@@ -26,6 +26,8 @@ namespace MonitoringAgent
                 _monitors.ForEach(monitor => Console.WriteLine(
                     (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
                     .Title + ": " + monitor.GetJson()));
+                if (Console.IsOutputRedirected)
+                    Console.Out.Flush();
 
                 _monitors.ForEach(monitor => monitor.Update());
             }

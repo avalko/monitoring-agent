@@ -20,6 +20,7 @@ namespace MonitoringAgent.Monitors
             // skip name
             active = result.Skip(1).Select(x => (int)x).Sum();
             idle = (int)result[4];
+            active -= idle;
         }
 
         public override void Init()

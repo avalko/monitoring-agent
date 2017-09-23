@@ -28,7 +28,7 @@ namespace MonitoringAgent
                 {
                     _monitors.ForEach(monitor =>
                     {
-                        sb.AppendLine($"\"{monitor.Tag}\": {monitor.GetJson()},");
+                        sb.Append($"\"{monitor.Tag}\": {monitor.GetJson()},");
                     });
 
                     File.WriteAllText(fileOut, "[" + sb.ToString().Trim().TrimEnd(',') + "]\n");

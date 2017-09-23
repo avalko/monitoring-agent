@@ -21,9 +21,13 @@ namespace MonitoringAgent
                 return 1;
             }
 
-            Console.WriteLine(File.ReadAllText("/sys/block/sda/queue/hw_sector_size"));
-            Console.WriteLine(File.ReadAllText("‌/proc/uptime"));
-            Console.WriteLine(File.ReadAllText("/sys/class/net/eth0/statistics/tx_packets"));
+            var uptime = File.Open("/proc/uptime", FileMode.Open);
+            var a = new StreamReader(uptime);
+            Console.WriteLine(a.ReadLine());
+
+            //Console.WriteLine(File.ReadAllText("/sys/block/sda/queue/hw_sector_size"));
+            //Console.WriteLine(File.ReadAllText("‌/proc/uptime"));
+            //Console.WriteLine(File.ReadAllText("/sys/class/net/eth0/statistics/tx_packets"));
 
             //while (true)
             {

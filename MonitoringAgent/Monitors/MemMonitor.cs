@@ -35,23 +35,23 @@ namespace MonitoringAgent.Monitors
                 switch (items[0].TrimEnd(':'))
                 {
                     case "MemTotal":
-                        _value.Total = int.Parse(items[1]);
+                        _value.Total = int.Parse(items[1]) / 1024.0;
                         flag |= flagMemTotal;
                         break;
                     case "MemFree":
-                        _value.Free = int.Parse(items[1]);
+                        _value.Free = int.Parse(items[1]) / 1024.0;
                         flag |= flagMemFree;
                         break;
                     case "MemAvailable":
-                        _value.Available = int.Parse(items[1]);
+                        _value.Available = int.Parse(items[1]) / 1024.0;
                         flag |= flagMemAvailable;
                         break;
                     case "SwapTotal":
-                        _value.SwapTotal = int.Parse(items[1]);
+                        _value.SwapTotal = int.Parse(items[1]) / 1024.0;
                         flag |= flagSwapTotal;
                         break;
                     case "SwapFree":
-                        _value.SwapFree = int.Parse(items[1]);
+                        _value.SwapFree = int.Parse(items[1]) / 1024.0;
                         flag |= flagSwapFree;
                         break;
                 }
@@ -67,11 +67,12 @@ namespace MonitoringAgent.Monitors
 
         class MemData
         {
-            public int Total { get; set; }
-            public int Free { get; set; }
-            public int Available { get; set; }
-            public int SwapTotal { get; set; }
-            public int SwapFree { get; set; }
+            public double Total { get; set; }
+            public double Free { get; set; }
+            public double Used => Total - Free;
+            public double Available { get; set; }
+            public double SwapTotal { get; set; }
+            public double SwapFree { get; set; }
         }
     }
 }

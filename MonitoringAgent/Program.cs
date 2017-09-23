@@ -10,9 +10,10 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
-            Console.WriteLine("Started monitoring...");
+            var agent = new Agent();
             AssemblyLoadContext.Default.Unloading += delegate
             {
+                agent.Stop();
                 Console.WriteLine("Good bye!");
             };
 
@@ -25,57 +26,27 @@ namespace MonitoringAgent
 #else
             // Nothing...
 #endif
-
-            int timeout = 1000;
-            string fileOut = null;
+            
+            int port = 5000;
 
             if (args.Length > 0)
             {
-                if (int.TryParse(args[0], out int newTimeout) && newTimeout > 0)
+                if (int.TryParse(args[0], out int newPort) && newPort > 0)
                 {
-                    timeout = newTimeout;                    
-                }
-
-                if (args.Length > 1)
-                {
-                    if (File.Exists(args[1]))
-                    {
-                        try
-                        {
-                            File.WriteAllText(args[1], "");
-                            fileOut = args[1];
-                        }
-                        catch
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine($"Unable to open file \"{args[1]}\" for writing!");
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            File.WriteAllText(args[1], "");
-                            fileOut = args[1];
-                        }
-                        catch
-                        {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            if (args[1].Intersect(Path.GetInvalidFileNameChars()).Count() > 0)
-                                Console.WriteLine($"Invalid filename!");
-                            else
-                                Console.WriteLine($"Unable create file \"{args[1]}\"!");
-                            Console.ForegroundColor = ConsoleColor.Gray;
-
-                            return 1;
-                        }
-                    }
+                    port = newPort;                    
                 }
             }
 
-            new Agent().Start(timeout, fileOut);
-            Thread.Sleep(Timeout.Infinite);
+            Console.WriteLine("Started monitoring...");
+            agent.Start(port);
+
+            Console.WriteLine("Press Enter to exit.");
+            Console.Read();
+            try
+            {
+                agent.Stop();
+            }
+            catch { }
 
             return 0;
         }

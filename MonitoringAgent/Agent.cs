@@ -32,6 +32,7 @@ namespace MonitoringAgent
                     });
 
                     File.WriteAllText(fileOut, "[" + sb.ToString().TrimEnd(',') + "]");
+                    sb.Clear();
                 }
                 else
                 {

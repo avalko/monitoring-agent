@@ -24,7 +24,7 @@ namespace MonitoringAgent
             // Nothing...
 #endif
 
-            int timeout = 1000;
+            int timeout = 100;
 
             if (args.Length > 0)
             {

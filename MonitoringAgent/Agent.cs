@@ -16,7 +16,7 @@ namespace MonitoringAgent
         {
             _Init();
 
-            Thread.Sleep(1000);
+            Thread.Sleep(1000); // wait
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             while (true)
@@ -29,6 +29,13 @@ namespace MonitoringAgent
                 _monitors.ForEach(monitor => Console.WriteLine(
                     (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
                     .Title + ": " + monitor.GetJson()));
+
+                if (stopwatch.ElapsedMilliseconds >= 1000)
+                {
+                    _monitors.ForEach(monitor => monitor.Update());
+
+                    stopwatch = Stopwatch.StartNew();
+                }
             }
         }
 

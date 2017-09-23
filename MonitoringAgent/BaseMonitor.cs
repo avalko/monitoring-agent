@@ -7,7 +7,7 @@ namespace MonitoringAgent
 {
     class BaseMonitor : IMonitor
     {
-        public virtual string PathToFile => throw new NotImplementedException();
+        protected Scanf _scanf { get; set; }
 
         public virtual string GetJson()
         {
@@ -22,14 +22,8 @@ namespace MonitoringAgent
         {
         }
 
-        protected async Task<string> _ReadToEndAsync()
+        public virtual void Update()
         {
-            return await VirtualFile.ReadToEndAsync(PathToFile);
-        }
-
-        protected async Task<string> _ReadLineAsync()
-        {
-            return await VirtualFile.ReadLineAsync(PathToFile);
         }
     }
 }

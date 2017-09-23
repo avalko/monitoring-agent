@@ -9,51 +9,37 @@ namespace MonitoringAgent.Monitors
     [Monitor("disk")]
     class DiskstatsMonitor : BaseMonitor
     {
-#if RELEASE
-        public override string PathToFile => "/proc/diskstats";
-        private const string _pathToHwSectorSize = "/sys/block/sda/queue/hw_sector_size";
-#else
-        public override string PathToFile => "Examples/diskstats.txt";
-        private const string _pathToHwSectorSize = "Examples/hw_sector_size.txt";
-#endif
-
         private int _hwSectorSize;
-        private Scanf _scanf;
-
-        class DiskastatsData
-        {
-            public int ReadBytes { get; set; }
-            public int WriteBytes { get; set; }
-
-            [JsonIgnore]
-            public int LastReadBytes { get; set; }
-            [JsonIgnore]
-            public int LastWriteBytes { get; set; }
-        }
-
         private Dictionary<string, DiskastatsData> _values = new Dictionary<string, DiskastatsData>();
 
-        public override async void Init()
+        public override void Init()
         {
-            // major minor name RIO rmerge rsect ruse WIO wmerge wsect wuse running use aveq
+            /**
+             * major minor name RIO rmerge rsect ruse WIO wmerge wsect wuse running use aveq
+             **/
             _scanf = Scanf.Create("%i %i %s %i %i %i %i %i %i %i %i %i %i %i");
-            _hwSectorSize = int.Parse(await VirtualFile.ReadLineAsync(_pathToHwSectorSize));
+            _hwSectorSize = int.Parse(VirtualFile.ReadLine(VirtualFile.PathToHWSectorSize));
 
-            var disks = (await _ReadToEndAsync()).SplitLines();
+            var disks = (VirtualFile.ReadToEnd(VirtualFile.PathToDiskStats)).SplitLines();
             foreach (var disk in disks)
             {
                 var diskMatches = _scanf.Matches(disk);
+                int readBytes = (int)diskMatches[3] * _hwSectorSize;
+                int writBytes = (int)diskMatches[7] * _hwSectorSize;
+
                 _values[diskMatches[2] as string] = new DiskastatsData()
                 {
-                    LastReadBytes = (int)diskMatches[3] * _hwSectorSize,
-                    LastWriteBytes = (int)diskMatches[7] * _hwSectorSize,
+                    LastReadBytes = readBytes,
+                    LastRealReadBytes = readBytes,
+                    LastWriteBytes = writBytes,
+                    LastRealWriteBytes = writBytes,
                 };
             }
         }
 
-        public override async void Next()
+        public override void Next()
         {
-            var disks = (await _ReadToEndAsync()).SplitLines();
+            var disks = VirtualFile.ReadToEnd(VirtualFile.PathToDiskStats).SplitLines();
             foreach (var disk in disks)
             {
                 var diskMatches = _scanf.Matches(disk);
@@ -65,14 +51,38 @@ namespace MonitoringAgent.Monitors
                 data.ReadBytes = currentBytesReads - data.LastReadBytes;
                 data.WriteBytes = currentBytesWrites - data.LastWriteBytes;
 
-                data.LastReadBytes = currentBytesReads;
-                data.LastWriteBytes = currentBytesWrites;
+                data.LastRealReadBytes = currentBytesReads;
+                data.LastRealWriteBytes = currentBytesWrites;
+            }
+        }
+
+        public override void Update()
+        {
+            foreach (var disk in _values)
+            {
+                disk.Value.LastReadBytes = disk.Value.LastRealReadBytes;
+                disk.Value.LastWriteBytes = disk.Value.LastRealWriteBytes;
             }
         }
 
         public override string GetJson()
         {
             return JsonConvert.SerializeObject(_values);
+        }
+
+        class DiskastatsData
+        {
+            public int ReadBytes { get; set; }
+            public int WriteBytes { get; set; }
+
+            [JsonIgnore]
+            public int LastReadBytes { get; set; }
+            [JsonIgnore]
+            public int LastWriteBytes { get; set; }
+            [JsonIgnore]
+            public int LastRealReadBytes { get; set; }
+            [JsonIgnore]
+            public int LastRealWriteBytes { get; set; }
         }
     }
 }

@@ -6,9 +6,9 @@ namespace MonitoringAgent
 {
     interface IMonitor
     {
-        string PathToFile { get; }
         void Init();
         string GetJson();
         void Next();
+        void Update();
     }
 }

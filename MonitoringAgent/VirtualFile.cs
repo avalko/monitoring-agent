@@ -2,25 +2,29 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace MonitoringAgent
 {
     public static class VirtualFile
     {
-        public async static Task<string> ReadLineAsync(string filePath)
+        public const string PathToHWSectorSize  = "/sys/block/sda/queue/hw_sector_size";
+        public const string PathToDiskStats     = "/proc/diskstats";
+        public const string PathToProcStat      = "/proc/stat";
+
+
+        public static string ReadLine(string filePath)
         {
             using (var stream = File.OpenText(filePath))
             {
-                return await stream.ReadLineAsync();
+                return stream.ReadLine();
             }
         }
 
-        public async static Task<string> ReadToEndAsync(string filePath)
+        public static string ReadToEnd(string filePath)
         {
             using (var stream = File.OpenText(filePath))
             {
-                return await stream.ReadToEndAsync();
+                return stream.ReadToEnd();
             }
         }
     }

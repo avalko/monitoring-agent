@@ -31,7 +31,7 @@ namespace MonitoringAgent
                         sb.Append($"\"{monitor.Tag}\": {monitor.GetJson()},");
                     });
 
-                    File.WriteAllText(fileOut, "[" + sb.ToString().Trim().TrimEnd(',') + "]\n");
+                    File.WriteAllText(fileOut, "{" + sb.ToString().Trim().TrimEnd(',') + "}\n");
                     sb.Clear();
                 }
                 else

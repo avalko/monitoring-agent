@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Loader;
 using System.Threading;
 
@@ -35,8 +36,42 @@ namespace MonitoringAgent
                     timeout = newTimeout;                    
                 }
 
-                if (args.Length > 1 && File.Exists(args[1]))
-                    fileOut = args[1];
+                if (args.Length > 1)
+                {
+                    if (File.Exists(args[1]))
+                    {
+                        try
+                        {
+                            File.WriteAllText(args[1], "");
+                            fileOut = args[1];
+                        }
+                        catch
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"Unable to open file \"{args[1]}\" for writing!");
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            File.WriteAllText(args[1], "");
+                            fileOut = args[1];
+                        }
+                        catch
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            if (args[1].Intersect(Path.GetInvalidFileNameChars()).Count() > 0)
+                                Console.WriteLine($"Invalid filename!");
+                            else
+                                Console.WriteLine($"Unable create file \"{args[1]}\"!");
+                            Console.ForegroundColor = ConsoleColor.Gray;
+
+                            return 1;
+                        }
+                    }
+                }
             }
 
             new Agent().Start(timeout, fileOut);

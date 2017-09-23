@@ -9,6 +9,8 @@ namespace MonitoringAgent
     {
         protected Scanf _scanf { get; set; }
 
+        public string Tag { get; set; } = "";
+
         public virtual string GetJson()
         {
             return "[]";

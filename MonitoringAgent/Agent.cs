@@ -16,6 +16,7 @@ namespace MonitoringAgent
         public void Start(int timeout, string fileOut)
         {
             _Init();
+            StringBuilder sb = new StringBuilder();
 
             while (true)
             {
@@ -25,16 +26,19 @@ namespace MonitoringAgent
 
                 if (fileOut != null)
                 {
-                    _monitors.ForEach(monitor => File.WriteAllText(fileOut,
-                        (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
-                        .Title + ": " + monitor.GetJson()));
+                    _monitors.ForEach(monitor =>
+                    {
+                        sb.AppendLine($"\"{monitor.Tag}\": {monitor.GetJson()},");
+                    });
+
+                    File.WriteAllText(fileOut, "[" + sb.ToString().TrimEnd(',') + "]");
                 }
                 else
                 {
                     Console.Clear();
                     _monitors.ForEach(monitor => Console.WriteLine(
                         (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
-                        .Title + ": " + monitor.GetJson()));
+                        .Tag + ": " + monitor.GetJson()));
                 }
 
                 _monitors.ForEach(monitor => monitor.Update());
@@ -49,7 +53,10 @@ namespace MonitoringAgent
             {
                 if (type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
-                    _monitors.Add((IMonitor)Activator.CreateInstance(type));
+                    var monitor = (IMonitor)Activator.CreateInstance(type);
+                    monitor.Tag = ((MonitorAttribute)monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute))
+                                    .Tag;
+                    _monitors.Add(monitor);
                 }
             }
 

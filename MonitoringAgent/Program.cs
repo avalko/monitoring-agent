@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Runtime.Loader;
 using System.Threading;
 
@@ -14,27 +13,19 @@ namespace MonitoringAgent
             {
                 Console.WriteLine("Good bye!");
             };
-            
+
+#if RELEASE
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 Console.WriteLine("Only UNIX!");
                 return 1;
             }
+#else
+            // Nothing...
+#endif
 
-            var uptime = File.Open("/proc/uptime", FileMode.Open);
-            var a = new StreamReader(uptime);
-            Console.WriteLine(a.ReadLine());
-
-            //Console.WriteLine(File.ReadAllText("/sys/block/sda/queue/hw_sector_size"));
-            //Console.WriteLine(File.ReadAllText("‌/proc/uptime"));
-            //Console.WriteLine(File.ReadAllText("/sys/class/net/eth0/statistics/tx_packets"));
-
-            //while (true)
-            {
-                // Every second
-
-                Thread.Sleep(1000);
-            }
+            new Agent().Start();
+            Thread.Sleep(Timeout.Infinite);
 
             return 0;
         }

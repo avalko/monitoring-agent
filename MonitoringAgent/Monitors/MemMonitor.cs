@@ -31,6 +31,8 @@ namespace MonitoringAgent.Monitors
             do
             {
                 string[] items = stream.ReadLine().SplitSpaces();
+                items.ToList().ForEach(x => Console.WriteLine(x));
+
                 switch (items[0])
                 {
                     case "MemTotal":

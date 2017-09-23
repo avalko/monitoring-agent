@@ -48,9 +48,7 @@ namespace MonitoringAgent
 
             pattern = Regex.Replace(pattern, $@"\%({_shortsRegex})", (m) =>
             {
-                Console.WriteLine(m.Value);
                 var type = _shorts[m.Groups[1].Value];
-                Console.WriteLine(type);
                 types.Add(type);
                 return "(" + _patterns[type] + ")";
             });

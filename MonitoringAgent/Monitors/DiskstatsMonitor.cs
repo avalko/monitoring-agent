@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MonitoringAgent.Monitors
 {
-    [Monitor]
+    [Monitor("disk")]
     class DiskstatsMonitor : BaseMonitor
     {
 #if RELEASE
@@ -38,6 +38,8 @@ namespace MonitoringAgent.Monitors
             // major minor name RIO rmerge rsect ruse WIO wmerge wsect wuse running use aveq
             _scanf = Scanf.Create("%i %i %s %i %i %i %i %i %i %i %i %i %i %i");
             _hwSectorSize = int.Parse(await VirtualFile.ReadLineAsync(_pathToHwSectorSize));
+
+            Console.WriteLine(_hwSectorSize);
 
             var disks = (await _ReadToEndAsync()).SplitLines();
             foreach (var disk in disks)

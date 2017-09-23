@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,19 +11,25 @@ namespace MonitoringAgent
     class Agent
     {
         private static List<IMonitor> _monitors = new List<IMonitor>();
+        public static int TIMEOUT = 100;
 
         public void Start()
         {
             _Init();
 
+            Thread.Sleep(1000);
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             while (true)
             {
-                Thread.Sleep(1000);
-                // Every second
+                Thread.Sleep(TIMEOUT);
+
                 _monitors.ForEach(monitor => monitor.Next());
 
                 Console.Clear();
-                _monitors.ForEach(monitor => Console.WriteLine(monitor.GetJson()));
+                _monitors.ForEach(monitor => Console.WriteLine(
+                    (monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute) as MonitorAttribute)
+                    .Title + ": " + monitor.GetJson()));
             }
         }
 

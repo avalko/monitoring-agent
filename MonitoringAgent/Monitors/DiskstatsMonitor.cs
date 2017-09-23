@@ -10,7 +10,7 @@ namespace MonitoringAgent.Monitors
     class DiskstatsMonitor : BaseMonitor
     {
 #if RELEASE
-        public override string PathToFile = "/proc/diskstats";
+        public override string PathToFile => "/proc/diskstats";
         private const string _pathToHwSectorSize = "/sys/block/sda/queue/hw_sector_size";
 #else
         public override string PathToFile => "Examples/diskstats.txt";

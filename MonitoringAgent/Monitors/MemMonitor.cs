@@ -64,6 +64,8 @@ namespace MonitoringAgent.Monitors
                 }
             } while ((flag ^ flagAll) > 0 && !stream.EndOfStream);
 
+            Json.Used = Json.Total - Json.Free;
+
             stream.Close();
         }
     }

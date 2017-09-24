@@ -25,11 +25,11 @@ namespace MonitoringAgent.Monitors
 
             do
             {
-                string[] items = stream.ReadLine().Split(':');
+                string[] items = stream.ReadLine().Split(':').Trim();
                 if (items.Length < 2)
                     continue;
 
-                string value = items[1].Trim();
+                string value = items[1];
 
                 switch (items[0])
                 {

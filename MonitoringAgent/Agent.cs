@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,17 +14,60 @@ namespace MonitoringAgent
 {
     class Agent
     {
-        private static List<IMonitor> _monitors = new List<IMonitor>();
+        public static Settings Settings { get; private set; } = new Settings();
+
+        private List<IMonitor> _monitors = new List<IMonitor>();
         private TcpListener _listener;
         private bool _work;
         private StringBuilder _sb = new StringBuilder();
 
-        public async void Start(int port)
+        public Agent()
+        {
+            const string settingsFilename = "settings.json";
+            if (!File.Exists(settingsFilename))
+            {
+                try
+                {
+                    File.WriteAllText(settingsFilename, JsonConvert.SerializeObject(Settings));
+                }
+                catch
+                {
+                    Console.WriteLine($"Error write to \"{Path.GetFullPath(settingsFilename)}\"!");
+                    Environment.Exit(-1);
+                }
+                return;
+            }
+
+            try
+            {
+                Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingsFilename));
+            }
+            catch
+            {
+                Console.WriteLine($"Error read \"{Path.GetFullPath(settingsFilename)}\"!");
+                Environment.Exit(-1);
+            }
+
+            if (!Directory.Exists(Settings.LogDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Settings.LogDir);
+                }
+                catch
+                {
+                    Console.WriteLine($"Can't create directory \"{Path.GetFullPath(Settings.LogDir)}\"!");
+                    Environment.Exit(-1);
+                }
+            }
+        }
+
+        public async void Start()
         {
             _work = true;
             _Init();
 
-            _listener = new TcpListener(IPAddress.Any, port);
+            _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
             _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _listener.Start();
 
@@ -47,20 +91,35 @@ namespace MonitoringAgent
                                     stream.Close();
                                     client.Close();
                                 }
-                                catch { }
+                                catch (Exception e)
+                                {
+                                    Log.Warning("TCP Thread Error: " + e.ToString());
+                                }
                             });
                             continue;
                         }
-                        catch { }
+                        catch (Exception e)
+                        {
+                            Log.Warning("TCP Server Error: " + e.ToString());
+                        }
                     }
                     await Task.Delay(100);
                 }
             }).Start();
 
+            Log.Info("TCP server started.");
+
             while (_work)
             {
                 await Task.Delay(1000);
-                _monitors.ForEach(monitor => monitor.Update());
+                try
+                {
+                    _monitors.ForEach(monitor => monitor.Update());
+                }
+                catch (Exception e)
+                {
+                    Log.Warning("Monitoring update error: " + e.ToString());
+                }
             }
         }
 
@@ -93,8 +152,10 @@ namespace MonitoringAgent
 
             foreach (var type in types)
             {
-                if (type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
+                if (type.GetInterfaces().Contains(typeof(IMonitor)) &&
+                    type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
+                    Log.Info($"Init Register monitor: {type.Name}");
                     var monitor = (IMonitor)Activator.CreateInstance(type);
                     monitor.Tag = ((MonitorAttribute)monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute))
                                     .Tag;

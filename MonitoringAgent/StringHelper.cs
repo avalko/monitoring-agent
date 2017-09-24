@@ -50,7 +50,9 @@ namespace MonitoringAgent
         {
             if (stringArray.Length > 0)
             {
-                return stringArray.Select(str => str.Trim(trimChars)).ToArray();
+                return stringArray
+                    .Select(str => str.Trim(trimChars))
+                    .Where(x => !string.IsNullOrEmpty(x)).ToArray();
             }
 
             return stringArray;

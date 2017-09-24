@@ -14,39 +14,25 @@ namespace MonitoringAgent
             AssemblyLoadContext.Default.Unloading += delegate
             {
                 agent.Stop();
-                Console.WriteLine("Good bye!");
+                Log.Info("Good bye!");
             };
 
-#if RELEASE
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                Console.WriteLine("Only UNIX!");
+                Log.Critical("Only UNIX!");
                 return 1;
             }
-#else
-            // Nothing...
-#endif
-            
-            int port = 5000;
 
-            if (args.Length > 0)
+            agent.Start();
+
+            if (Agent.Settings.DaemonMode || (args.Length > 0 && args[0] == "daemon"))
             {
-                if (int.TryParse(args[0], out int newPort) && newPort > 0)
-                {
-                    port = newPort;                    
-                }
-            }
-
-            Console.WriteLine("Started monitoring...");
-            agent.Start(port);
-
-            if (args.Length > 1 && args[1] == "daemon")
-            {
-                Console.WriteLine("Daemon started.");
+                Log.Info("Daemon started.");
                 Thread.Sleep(Timeout.Infinite);
             }
+            else
+                Console.WriteLine("Press Enter to exit.");
 
-            Console.WriteLine("Press Enter to exit.");
             Console.Read();
             agent.Stop();
 

@@ -129,7 +129,7 @@ namespace MonitoringAgent
                                     var stream = client.GetStream();
                                     string data = "";
                                     int length = 0;
-                                    if ((length = stream.Read(buffer, 0, 4096)) > 0)
+                                    if ((length = stream.Read(buffer, 0, 512)) > 0)
                                     {
                                         data += Encoding.ASCII.GetString(buffer, 0, length);
                                     }

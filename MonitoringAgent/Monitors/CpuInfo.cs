@@ -26,6 +26,9 @@ namespace MonitoringAgent.Monitors
             do
             {
                 string[] items = stream.ReadLine().Split(':');
+                if (items.Length < 2)
+                    continue;
+
                 string value = items[1].Trim();
 
                 switch (items[0])

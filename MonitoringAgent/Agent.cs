@@ -256,7 +256,7 @@ namespace MonitoringAgent
         {
             try
             {
-                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{(int)_dateStartEpoch.Subtract(x.Time).TotalSeconds};{x.Json}")));
+                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{(int)x.Time.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}")));
             }
             catch { }
         }

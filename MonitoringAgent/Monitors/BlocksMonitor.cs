@@ -33,9 +33,13 @@ namespace MonitoringAgent.Monitors
                 {
                     var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, diskName)).SplitSpaces().Trim();
                     int sectorSize = int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToHWSectorSize, diskName)));
+                    int blockSize = int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockSize, diskName)));
+
+                    // Convert to megabytes
+                    blockSize = (int)((blockSize / (1024.0 * 1024.0)) * sectorSize);
                     _blocks[diskName] = block = new BlockData()
                     {
-                        BlockSize = sectorSize * int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockSize, diskName))),
+                        BlockSize = blockSize,
                         SectorSize = sectorSize,
                         LastTimeActive = int.Parse(blockStat[9])
                     };

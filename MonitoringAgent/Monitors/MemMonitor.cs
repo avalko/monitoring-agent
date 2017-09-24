@@ -40,24 +40,25 @@ namespace MonitoringAgent.Monitors
 
                 switch (items[0])
                 {
+                    // all in KiB
                     case "MemTotal":
-                        Json.Total = int.Parse(value) / 1024.0;
+                        Json.Total = int.Parse(value);
                         flag |= flagMemTotal;
                         break;
                     case "MemFree":
-                        Json.Free = int.Parse(value) / 1024.0;
+                        Json.Free = int.Parse(value);
                         flag |= flagMemFree;
                         break;
                     case "MemAvailable":
-                        Json.Available = int.Parse(value) / 1024.0;
+                        Json.Available = int.Parse(value);
                         flag |= flagMemAvailable;
                         break;
                     case "SwapTotal":
-                        Json.SwapTotal = int.Parse(value) / 1024.0;
+                        Json.SwapTotal = int.Parse(value);
                         flag |= flagSwapTotal;
                         break;
                     case "SwapFree":
-                        Json.SwapFree = int.Parse(value) / 1024.0;
+                        Json.SwapFree = int.Parse(value);
                         flag |= flagSwapFree;
                         break;
                 }

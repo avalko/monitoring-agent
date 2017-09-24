@@ -79,10 +79,13 @@ namespace MonitoringAgent.Monitors
             public int ReceivePackets { get; set; }
             public int SendPackets { get; set; }
 
-
+            [JsonIgnore]
             public long ReceiveBytesLast { get; set; }
+            [JsonIgnore]
             public long SendBytesLast { get; set; }
+            [JsonIgnore]
             public int ReceivePacketsLast { get; set; }
+            [JsonIgnore]
             public int SendPacketsLast { get; set; }
         }
     }

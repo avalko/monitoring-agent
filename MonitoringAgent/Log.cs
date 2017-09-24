@@ -35,7 +35,7 @@ namespace MonitoringAgent
         {
             Console.WriteLine(raw);
             if (Agent.Settings.LogEnable)
-                File.AppendAllText(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + Agent.Settings.LogFile,
+                File.AppendAllText(Agent.Settings.LogDir + "/" + DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".log",
                                    raw + "\n" + new string('-', 50) + "\n");
         }
     }

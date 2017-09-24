@@ -8,7 +8,7 @@ namespace MonitoringAgent
     {
         public int AgentPort { get; set; } = 5000;
         public bool LogEnable { get; set; } = true;
-        public string LogFile { get; set; } = "main.log";
+        public string LogDir { get; set; } = "logs";
         public bool DaemonMode { get; set; } = false;
     }
 }

@@ -28,7 +28,6 @@ namespace MonitoringAgent
             {
                 try
                 {
-
                     File.WriteAllText(settingsFilename, JsonConvert.SerializeObject(Settings));
                 }
                 catch
@@ -41,13 +40,25 @@ namespace MonitoringAgent
 
             try
             {
-
                 Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingsFilename));
             }
             catch
             {
                 Console.WriteLine($"Error read \"{Path.GetFullPath(settingsFilename)}\"!");
                 Environment.Exit(-1);
+            }
+
+            if (!Directory.Exists(Settings.LogDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Settings.LogDir);
+                }
+                catch
+                {
+                    Console.WriteLine($"Can't create directory \"{Path.GetFullPath(Settings.LogDir)}\"!");
+                    Environment.Exit(-1);
+                }
             }
         }
 

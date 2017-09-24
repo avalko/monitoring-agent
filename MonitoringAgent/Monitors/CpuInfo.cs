@@ -13,6 +13,11 @@ namespace MonitoringAgent.Monitors
         private readonly CpuInfoData _value = new CpuInfoData();
         private string _json = "";
 
+        public CpuInfo()
+        {
+            Static = true;
+        }
+
         public override void Init()
         {
             var stream = VirtualFile.Open(VirtualFile.PathToCpuInfo);

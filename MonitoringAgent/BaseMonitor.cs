@@ -12,6 +12,7 @@ namespace MonitoringAgent
         protected dynamic Json = new ExpandoObject();
 
         public string Tag { get; set; } = "";
+        public bool Static { get; set; } = false;
 
         public virtual string GetJson()
         {

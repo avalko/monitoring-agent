@@ -79,7 +79,9 @@ namespace MonitoringAgent
             {
                 try
                 {
-                    _history = File.ReadAllLines(HISTORY_PATH).Select(line =>
+                    var lines = File.ReadAllLines(HISTORY_PATH);
+                    Log.Info($"History exist ({lines} lines).");
+                    _history = lines.Select(line =>
                     {
                         var arr = line.Split(';');
                         if (arr.Length < 2)
@@ -197,7 +199,7 @@ namespace MonitoringAgent
                 try
                 {
                     _monitors.ForEach(monitor => monitor.Update());
-                    _history.Insert(0, new HistoryItem() { Time = DateTime.UtcNow, Json = GetJson() });
+                    _history.Insert(0, new HistoryItem() { Time = DateTime.UtcNow, Json = GetJsonWithoutStatic() });
                     _ClearHistoryIfOverflow();
                 }
                 catch (Exception e)
@@ -222,6 +224,11 @@ namespace MonitoringAgent
         public string GetJson()
         {
             return "{" + string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
+        }
+
+        public string GetJsonWithoutStatic()
+        {
+            return "{" + string.Join(',', _monitors.Where(x => !x.Static).Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
         }
 
         public void Stop()

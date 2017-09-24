@@ -12,5 +12,6 @@ namespace MonitoringAgent
         public bool DaemonMode { get; set; } = false;
         public int SaveHistory { get; set; } = 2678400;
         public int AutoSave { get; set; } = 10;
+        public int MaxReturn { get; set; } = 100;
     }
 }

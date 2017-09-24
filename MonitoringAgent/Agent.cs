@@ -26,6 +26,7 @@ namespace MonitoringAgent
         private List<HistoryItem> _history;
         private readonly DateTime _dateStartEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
         private DateTime _lastHistorySave = DateTime.MinValue;
+        private int _flushedToHistory = 0;
 
         struct HistoryItem
         {
@@ -92,6 +93,7 @@ namespace MonitoringAgent
                             Json = arr[1]
                         };
                     }).Where(x => !x.Equals(HistoryItem.Null)).ToList();
+                    _flushedToHistory = _history.Count;
                 }
                 catch (Exception e)
                 {
@@ -177,12 +179,6 @@ namespace MonitoringAgent
                                     stream.Close();
                                     client.Close();
                                     buffer = null;
-
-                                    if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Settings.AutoSave))
-                                    {
-                                        _FlushHistory();
-                                        _lastHistorySave = DateTime.Now;
-                                    }
                                 }
                                 catch (Exception e)
                                 {
@@ -215,17 +211,18 @@ namespace MonitoringAgent
                 {
                     Log.Warning("Monitoring update error: " + e.ToString());
                 }
+
+                if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Settings.AutoSave))
+                {
+                    _FlushHistory();
+                    _lastHistorySave = DateTime.Now;
+                }
             }
         }
 
-        public string GetHistoryJson(int last = -1)
+        public string GetHistoryJson(int last = 10)
         {
-            IEnumerable<HistoryItem> arr = null;
-
-            if (last >= 0)
-                arr = _history.Take(Math.Min(last, _history.Count));
-            else
-                arr = _history;
+            IEnumerable<HistoryItem> arr = _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturn));
 
             return "{" + string.Join(',', arr.Select(item => $"\"{(int)item.Time.Subtract(_dateStartEpoch).TotalSeconds}\": {item.Json}")) + "}";
         }
@@ -259,7 +256,12 @@ namespace MonitoringAgent
         {
             try
             {
-                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{(int)x.Time.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}")));
+                var items = _history.Skip(_flushedToHistory).Select(x => $"{(int)x.Time.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}");
+                if (items.Count() > 0)
+                {
+                    _flushedToHistory += items.Count();
+                    File.AppendAllText(HISTORY_PATH, string.Join('\n', items));
+                }
             }
             catch { }
         }

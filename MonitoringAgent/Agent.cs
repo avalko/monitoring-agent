@@ -157,7 +157,10 @@ namespace MonitoringAgent
                                                 {
                                                     var get = HttpUtility.ParseQueryString(arr[1]);
                                                     if (get.AllKeys.Contains("last") && int.TryParse(get["last"], out int tmpLast))
+                                                    {
                                                         last = tmpLast;
+                                                        Log.Info("Last = " + last);
+                                                    }
                                                 }
                                             }
                                         }
@@ -219,7 +222,7 @@ namespace MonitoringAgent
         {
             IEnumerable<HistoryItem> arr = null;
 
-            if (last <= 0)
+            if (last >= 0)
                 arr = _history.Take(Math.Min(last, _history.Count));
             else
                 arr = _history;

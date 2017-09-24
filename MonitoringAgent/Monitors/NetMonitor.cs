@@ -53,7 +53,7 @@ namespace MonitoringAgent.Monitors
                         continue;
                     if (int.TryParse(raw[0], out _))
                     {
-                        var numbers = raw.Skip(1).Select(x => int.Parse(x)).ToArray();
+                        var numbers = raw.Select(x => int.Parse(x)).ToArray();
 
                         switch (arr[0].ToLower())
                         {

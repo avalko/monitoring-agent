@@ -174,6 +174,12 @@ namespace MonitoringAgent
                                     stream.Close();
                                     client.Close();
                                     buffer = null;
+
+                                    if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Settings.AutoSave))
+                                    {
+                                        _FlushHistory();
+                                        _lastHistorySave = DateTime.Now;
+                                    }
                                 }
                                 catch (Exception e)
                                 {
@@ -218,7 +224,7 @@ namespace MonitoringAgent
             else
                 arr = _history;
 
-            return "{" + string.Join(',', arr.Select(item => $"\"{item.Time.Subtract(_dateStartEpoch).TotalSeconds}\": {item.Json}")) + "}";
+            return "{" + string.Join(',', arr.Select(item => $"\"{(int)item.Time.Subtract(_dateStartEpoch).TotalSeconds}\": {item.Json}")) + "}";
         }
 
         public string GetJson()
@@ -250,7 +256,7 @@ namespace MonitoringAgent
         {
             try
             {
-                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{DateTime.UtcNow.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}")));
+                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{(int)DateTime.UtcNow.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}")));
             }
             catch { }
         }

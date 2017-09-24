@@ -11,5 +11,6 @@ namespace MonitoringAgent
         public string LogDir { get; set; } = "logs";
         public bool DaemonMode { get; set; } = false;
         public int SaveHistory { get; set; } = 2678400;
+        public int AutoSave { get; set; } = 10;
     }
 }

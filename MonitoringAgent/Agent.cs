@@ -80,7 +80,7 @@ namespace MonitoringAgent
                 try
                 {
                     var lines = File.ReadAllLines(HISTORY_PATH);
-                    Log.Info($"History exist ({lines} lines).");
+                    Log.Info($"History exist ({lines.Length} lines).");
                     _history = lines.Select(line =>
                     {
                         var arr = line.Split(';');
@@ -93,10 +93,10 @@ namespace MonitoringAgent
                         };
                     }).Where(x => !x.Equals(HistoryItem.Null)).ToList();
                 }
-                catch
+                catch (Exception e)
                 {
                     _history = new List<HistoryItem>();
-                    Log.Warning($"Can't read history!");
+                    Log.Warning($"Can't read history: {e}");
                 }
             }
             else

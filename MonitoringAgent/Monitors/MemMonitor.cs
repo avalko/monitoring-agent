@@ -30,28 +30,29 @@ namespace MonitoringAgent.Monitors
 
             do
             {
-                string[] items = stream.ReadLine().SplitSpaces();
+                string[] items = stream.ReadLine().Split(':');
+                string value = items[1].SplitSpaces()[0];
 
-                switch (items[0].TrimEnd(':'))
+                switch (items[0])
                 {
                     case "MemTotal":
-                        _value.Total = int.Parse(items[1]) / 1024.0;
+                        _value.Total = int.Parse(value) / 1024.0;
                         flag |= flagMemTotal;
                         break;
                     case "MemFree":
-                        _value.Free = int.Parse(items[1]) / 1024.0;
+                        _value.Free = int.Parse(value) / 1024.0;
                         flag |= flagMemFree;
                         break;
                     case "MemAvailable":
-                        _value.Available = int.Parse(items[1]) / 1024.0;
+                        _value.Available = int.Parse(value) / 1024.0;
                         flag |= flagMemAvailable;
                         break;
                     case "SwapTotal":
-                        _value.SwapTotal = int.Parse(items[1]) / 1024.0;
+                        _value.SwapTotal = int.Parse(value) / 1024.0;
                         flag |= flagSwapTotal;
                         break;
                     case "SwapFree":
-                        _value.SwapFree = int.Parse(items[1]) / 1024.0;
+                        _value.SwapFree = int.Parse(value) / 1024.0;
                         flag |= flagSwapFree;
                         break;
                 }

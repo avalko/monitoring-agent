@@ -11,6 +11,8 @@ namespace MonitoringAgent
         public const string PathToDiskStats     = "/proc/diskstats";
         public const string PathToProcStat      = "/proc/stat";
         public const string PathToMemInfo       = "/proc/meminfo";
+        public const string PathToUpTime        = "/proc/uptime";
+        public const string PathToCpuInfo       = "/proc/cpuinfo";
 
 
         public static StreamReader Open(string filePath)

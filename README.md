@@ -1,7 +1,6 @@
 monitoring-agent v1.0
 =====
-
-
+Monitoring your server.
 
 # Requirements
 ### [.NET Core 2.0](https://www.microsoft.com/net/core)

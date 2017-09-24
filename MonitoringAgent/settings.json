@@ -2,5 +2,6 @@
   "AgentPort": 5000,
   "LogEnable": true,
   "LogDir": "logs",
-  "DaemonMode": false
+  "DaemonMode": true,
+  "SaveHistory": 2678400 // month (in sec)
 }

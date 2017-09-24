@@ -14,12 +14,24 @@ namespace MonitoringAgent
 {
     class Agent
     {
+        private const string HISTORY_PATH = "history.dat";
+
         public static Settings Settings { get; private set; } = new Settings();
 
         private List<IMonitor> _monitors = new List<IMonitor>();
         private TcpListener _listener;
         private bool _work;
-        private StringBuilder _sb = new StringBuilder();
+
+        private List<HistoryItem> _history;
+        private readonly DateTime _dateStartEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+
+        struct HistoryItem
+        {
+            public static HistoryItem Null { get; } = new HistoryItem();
+
+            public DateTime Time { get; set; }
+            public string Json { get; set; }
+        }
 
         public Agent()
         {
@@ -44,7 +56,7 @@ namespace MonitoringAgent
             }
             catch
             {
-                Console.WriteLine($"Error read \"{Path.GetFullPath(settingsFilename)}\"!");
+                Log.Critical($"Error read \"{Path.GetFullPath(settingsFilename)}\"!");
                 Environment.Exit(-1);
             }
 
@@ -56,10 +68,39 @@ namespace MonitoringAgent
                 }
                 catch
                 {
-                    Console.WriteLine($"Can't create directory \"{Path.GetFullPath(Settings.LogDir)}\"!");
+                    Log.Critical($"Can't create directory \"{Path.GetFullPath(Settings.LogDir)}\"!");
                     Environment.Exit(-1);
                 }
             }
+
+            if (File.Exists(HISTORY_PATH))
+            {
+                try
+                {
+                    _history = File.ReadAllLines(HISTORY_PATH).Select(line =>
+                    {
+                        var arr = line.Split(':');
+                        if (arr.Length < 2)
+                            return HistoryItem.Null;
+                        return new HistoryItem()
+                        {
+                            Time = _dateStartEpoch.AddSeconds(int.Parse(arr[0])),
+                            Json = arr[1]
+                        };
+                    }).Where(x => !x.Equals(HistoryItem.Null)).ToList();
+                }
+                catch
+                {
+                    _history = new List<HistoryItem>();
+                    Log.Warning($"Can't read history!");
+                }
+            }
+            else
+            {
+                _history = new List<HistoryItem>();
+            }
+
+            _ClearHistory();
         }
 
         public async void Start()
@@ -84,12 +125,32 @@ namespace MonitoringAgent
                             {
                                 try
                                 {
-                                    string returnData = "HTTP/1.1 200 OK\n\n" + GetJson();
-                                    byte[] returnBytes = Encoding.UTF8.GetBytes(returnData);
+                                    byte[] buffer = new byte[512];
                                     var stream = client.GetStream();
+                                    string data = "";
+                                    int length = 0;
+                                    if ((length = stream.Read(buffer, 0, 4096)) > 0)
+                                    {
+                                        data += Encoding.ASCII.GetString(buffer, 0, length);
+                                    }
+
+                                    string returnData = "HTTP/1.1 200 OK\n\n";
+                                    byte[] returnBytes;
+                                    if (data.Contains("history"))
+                                    {
+                                        Log.Info(data);
+                                        returnData += GetHistoryJson();
+                                    }
+                                    else
+                                    {
+                                        returnData += GetJson();
+                                    }
+                                    returnBytes = Encoding.UTF8.GetBytes(returnData);
                                     await stream.WriteAsync(returnBytes, 0, returnBytes.Length);
+
                                     stream.Close();
                                     client.Close();
+                                    buffer = null;
                                 }
                                 catch (Exception e)
                                 {
@@ -115,6 +176,7 @@ namespace MonitoringAgent
                 try
                 {
                     _monitors.ForEach(monitor => monitor.Update());
+                    _history.Add(new HistoryItem() { Time = DateTime.UtcNow, Json = GetJson() });
                 }
                 catch (Exception e)
                 {
@@ -123,18 +185,32 @@ namespace MonitoringAgent
             }
         }
 
+        public string GetHistoryJson()
+        {
+            string.Join('\n', _history.Select(x => $"{DateTime.UtcNow.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}"));
+
+            var sb = new StringBuilder();
+            sb.Append("{");
+            sb.Append(string.Join(',', _history.Select(item => $"\"{item.Time}\": {item.Json}")));
+            sb.Append("}");
+
+            return sb.ToString();
+        }
+
         public string GetJson()
         {
-            _sb.Clear();
-            _sb.Append("{");
-            _sb.Append(string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")));
-            _sb.Append("}\n");
+            var sb = new StringBuilder();
+            sb.Append("{");
+            sb.Append(string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")));
+            sb.Append("}");
 
-            return _sb.ToString();
+            return sb.ToString();
         }
 
         public void Stop()
         {
+            _FlushHistory();
+
             _work = false;
             if (_listener != null)
             {
@@ -144,6 +220,15 @@ namespace MonitoringAgent
                 }
                 catch { }
             }
+        }
+
+        private void _FlushHistory()
+        {
+            try
+            {
+                File.WriteAllText(HISTORY_PATH, string.Join('\n', _history.Select(x => $"{DateTime.UtcNow.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}")));
+            }
+            catch { }
         }
 
         private void _Init()
@@ -164,6 +249,15 @@ namespace MonitoringAgent
             }
 
             _monitors.ForEach(monitor => monitor.Init());
+        }
+
+        private void _ClearHistory()
+        {
+            if (_history.Count > Settings.SaveHistory)
+            {
+                _history.RemoveRange(0, _history.Count - Settings.SaveHistory);
+            }
+
         }
     }
 }

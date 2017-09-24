@@ -43,7 +43,7 @@ namespace MonitoringAgent.Monitors
                 }
                 else
                 {
-                    block = _blocks.First(x => x.Key.StartsWith(diskName)).Value;
+                    block = _blocks.First(x => diskName.StartsWith(x.Key)).Value;
                 }
 
                 int readBytes = int.Parse(diskMatches[5]) * block?.SectorSize ?? 1;

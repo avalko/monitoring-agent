@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MonitoringAgent
 {
@@ -24,6 +25,7 @@ namespace MonitoringAgent
 
         private List<HistoryItem> _history;
         private readonly DateTime _dateStartEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+        private DateTime _lastHistorySave = DateTime.MinValue;
 
         struct HistoryItem
         {
@@ -79,7 +81,7 @@ namespace MonitoringAgent
                 {
                     _history = File.ReadAllLines(HISTORY_PATH).Select(line =>
                     {
-                        var arr = line.Split(':');
+                        var arr = line.Split(';');
                         if (arr.Length < 2)
                             return HistoryItem.Null;
                         return new HistoryItem()
@@ -100,7 +102,7 @@ namespace MonitoringAgent
                 _history = new List<HistoryItem>();
             }
 
-            _ClearHistory();
+            _ClearHistoryIfOverflow();
         }
 
         public async void Start()
@@ -136,10 +138,29 @@ namespace MonitoringAgent
 
                                     string returnData = "HTTP/1.1 200 OK\n\n";
                                     byte[] returnBytes;
-                                    if (data.Contains("history"))
+                                    if (data.StartsWith("GET /historyAll"))
                                     {
-                                        Log.Info(data);
                                         returnData += GetHistoryJson();
+                                    }
+                                    else if (data.StartsWith("GET /history"))
+                                    {
+                                        int last = 100;
+                                        if (data.Contains("?"))
+                                        {
+                                            var arr = data.SplitSpaces();
+                                            if (arr.Length >= 3)
+                                            {
+                                                arr = arr[1].Split('?');
+                                                if (arr.Length > 1)
+                                                {
+                                                    var get = HttpUtility.ParseQueryString(arr[1]);
+                                                    if (get.AllKeys.Contains("last") && int.TryParse(get["last"], out int tmpLast))
+                                                        last = tmpLast;
+                                                }
+                                            }
+                                        }
+
+                                        returnData += GetHistoryJson(last);
                                     }
                                     else
                                     {
@@ -176,7 +197,8 @@ namespace MonitoringAgent
                 try
                 {
                     _monitors.ForEach(monitor => monitor.Update());
-                    _history.Add(new HistoryItem() { Time = DateTime.UtcNow, Json = GetJson() });
+                    _history.Insert(0, new HistoryItem() { Time = DateTime.UtcNow, Json = GetJson() });
+                    _ClearHistoryIfOverflow();
                 }
                 catch (Exception e)
                 {
@@ -185,26 +207,21 @@ namespace MonitoringAgent
             }
         }
 
-        public string GetHistoryJson()
+        public string GetHistoryJson(int last = -1)
         {
-            string.Join('\n', _history.Select(x => $"{DateTime.UtcNow.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}"));
+            IEnumerable<HistoryItem> arr = null;
 
-            var sb = new StringBuilder();
-            sb.Append("{");
-            sb.Append(string.Join(',', _history.Select(item => $"\"{item.Time}\": {item.Json}")));
-            sb.Append("}");
+            if (last <= 0)
+                arr = _history.Take(Math.Min(last, _history.Count));
+            else
+                arr = _history;
 
-            return sb.ToString();
+            return "{" + string.Join(',', arr.Select(item => $"\"{item.Time.Subtract(_dateStartEpoch).TotalSeconds}\": {item.Json}")) + "}";
         }
 
         public string GetJson()
         {
-            var sb = new StringBuilder();
-            sb.Append("{");
-            sb.Append(string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")));
-            sb.Append("}");
-
-            return sb.ToString();
+            return "{" + string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
         }
 
         public void Stop()
@@ -251,7 +268,7 @@ namespace MonitoringAgent
             _monitors.ForEach(monitor => monitor.Init());
         }
 
-        private void _ClearHistory()
+        private void _ClearHistoryIfOverflow()
         {
             if (_history.Count > Settings.SaveHistory)
             {

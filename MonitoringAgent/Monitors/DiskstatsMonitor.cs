@@ -9,6 +9,7 @@ namespace MonitoringAgent.Monitors
     [Monitor("disk")]
     class DiskstatsMonitor : BaseMonitor
     {
+        private Scanf _scanf;
         private int _hwSectorSize;
         private Dictionary<string, DiskastatsData> _values = new Dictionary<string, DiskastatsData>();
 

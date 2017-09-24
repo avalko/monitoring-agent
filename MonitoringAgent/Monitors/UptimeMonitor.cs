@@ -10,12 +10,10 @@ namespace MonitoringAgent.Monitors
     [Monitor("uptime")]
     class UptimeMonitor : BaseMonitor
     {
-        private UpTimeDta _value = new UpTimeDta();
-
         public override void Init()
         {
-            _value = new UpTimeDta();
-            _value.Idle = 0;
+            Json.Idle = 0.0D;
+            Json.Work = 0.0D;
         }
 
         public override void Update()
@@ -23,19 +21,8 @@ namespace MonitoringAgent.Monitors
             var line = VirtualFile.ReadLine(VirtualFile.PathToUpTime);
             var items = line.SplitSpaces();
             if (items.Length > 1)
-                _value.Idle = double.Parse(items[1], CultureInfo.InvariantCulture);
-            _value.Work = double.Parse(items[0], CultureInfo.InvariantCulture);
-        }
-
-        public override string GetJson()
-        {
-            return JsonConvert.SerializeObject(_value);
-        }
-
-        class UpTimeDta
-        {
-            public double Work { get; set; }
-            public double Idle { get; set; }
+                Json.Idle = double.Parse(items[1], CultureInfo.InvariantCulture);
+            Json.Work = double.Parse(items[0], CultureInfo.InvariantCulture);
         }
     }
 }

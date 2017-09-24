@@ -9,11 +9,15 @@ namespace MonitoringAgent.Monitors
     [Monitor("mem")]
     class MemMonitor  : BaseMonitor
     {
-        private MemData _value = new MemData();
 
         public override void Init()
         {
-            _value = new MemData();
+            Json.Total = 0;
+            Json.Free = 0;
+            Json.Used = 0;
+            Json.Available = 0;
+            Json.SwapTotal = 0;
+            Json.SwapFree = 0;
         }
 
         public override void Update()
@@ -36,44 +40,29 @@ namespace MonitoringAgent.Monitors
                 switch (items[0])
                 {
                     case "MemTotal":
-                        _value.Total = int.Parse(value) / 1024.0;
+                        Json.Total = int.Parse(value) / 1024.0;
                         flag |= flagMemTotal;
                         break;
                     case "MemFree":
-                        _value.Free = int.Parse(value) / 1024.0;
+                        Json.Free = int.Parse(value) / 1024.0;
                         flag |= flagMemFree;
                         break;
                     case "MemAvailable":
-                        _value.Available = int.Parse(value) / 1024.0;
+                        Json.Available = int.Parse(value) / 1024.0;
                         flag |= flagMemAvailable;
                         break;
                     case "SwapTotal":
-                        _value.SwapTotal = int.Parse(value) / 1024.0;
+                        Json.SwapTotal = int.Parse(value) / 1024.0;
                         flag |= flagSwapTotal;
                         break;
                     case "SwapFree":
-                        _value.SwapFree = int.Parse(value) / 1024.0;
+                        Json.SwapFree = int.Parse(value) / 1024.0;
                         flag |= flagSwapFree;
                         break;
                 }
-            } while ((flag ^ flagAll) > 0);
+            } while ((flag ^ flagAll) > 0 && !stream.EndOfStream);
 
             stream.Close();
-        }
-
-        public override string GetJson()
-        {
-            return JsonConvert.SerializeObject(_value);
-        }
-
-        class MemData
-        {
-            public double Total { get; set; }
-            public double Free { get; set; }
-            public double Used => Total - Free;
-            public double Available { get; set; }
-            public double SwapTotal { get; set; }
-            public double SwapFree { get; set; }
         }
     }
 }

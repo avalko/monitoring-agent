@@ -10,12 +10,11 @@ namespace MonitoringAgent.Monitors
     [Monitor("info")]
     class CpuInfo : BaseMonitor
     {
-        private CpuInfoData _value = new CpuInfoData();
+        private readonly CpuInfoData _value = new CpuInfoData();
         private string _json = "";
 
         public override void Init()
         {
-            _value = new CpuInfoData();
             var stream = VirtualFile.Open(VirtualFile.PathToCpuInfo);
 
             byte flag = 0b0000000;
@@ -44,15 +43,11 @@ namespace MonitoringAgent.Monitors
                         flag |= flagFreq;
                         break;
                 }
-            } while ((flag ^ flagAll) > 0);
+            } while ((flag ^ flagAll) > 0 && !stream.EndOfStream);
 
             stream.Close();
 
             _json = JsonConvert.SerializeObject(_value);
-        }
-
-        public override void Update()
-        {
         }
 
         public override string GetJson()

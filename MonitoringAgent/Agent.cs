@@ -141,9 +141,10 @@ namespace MonitoringAgent
 
             foreach (var type in types)
             {
-                if (type.IsAssignableFrom(typeof(IMonitor)) &&
+                if (type.GetInterfaces().Contains(typeof(IMonitor)) &&
                     type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
+                    Log.Info($"Init Register monitor: {type.Name}");
                     var monitor = (IMonitor)Activator.CreateInstance(type);
                     monitor.Tag = ((MonitorAttribute)monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute))
                                     .Tag;

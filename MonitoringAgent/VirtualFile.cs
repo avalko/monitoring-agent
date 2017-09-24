@@ -7,7 +7,8 @@ namespace MonitoringAgent
 {
     public static class VirtualFile
     {
-        public const string PathToBlocks        = "/sys/block/";
+        public const string PathToNetDev        = "/proc/net/dev";
+        public const string PathToNetSnmp       = "/proc/net/snmp";
         public const string PathToHWSectorSize  = "/sys/block/{0}/queue/hw_sector_size";
         public const string PathToBlockStat     = "/sys/block/{0}/stat";
         public const string PathToBlockSize     = "/sys/block/{0}/size";
@@ -20,22 +21,46 @@ namespace MonitoringAgent
 
         public static StreamReader Open(string filePath)
         {
-            return File.OpenText(filePath);
+            try
+            {
+                return File.OpenText(filePath);
+            }
+            catch (Exception e)
+            {
+                Log.Critical($"Error Open file \"{filePath}\": {e}");
+                throw;
+            }
         }
 
         public static string ReadLine(string filePath)
         {
-            using (var stream = File.OpenText(filePath))
+            try
             {
-                return stream.ReadLine();
+                using (var stream = File.OpenText(filePath))
+                {
+                    return stream.ReadLine();
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Critical($"Error ReadLine from file \"{filePath}\": {e}");
+                throw;
             }
         }
 
         public static string ReadToEnd(string filePath)
         {
-            using (var stream = File.OpenText(filePath))
+            try
             {
-                return stream.ReadToEnd();
+                using (var stream = File.OpenText(filePath))
+                {
+                    return stream.ReadToEnd();
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Critical($"Error ReadToEnd from file \"{filePath}\": {e}");
+                throw;
             }
         }
     }

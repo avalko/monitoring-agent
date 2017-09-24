@@ -1,0 +1,6 @@
+﻿{
+  "AgentPort": 5000,
+  "LogEnable": true,
+  "LogFile": "main.log",
+  "DaemonMode": false
+}

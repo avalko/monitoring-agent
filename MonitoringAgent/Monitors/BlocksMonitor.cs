@@ -24,14 +24,14 @@ namespace MonitoringAgent.Monitors
             var disks = (VirtualFile.ReadToEnd(VirtualFile.PathToDiskStats)).SplitLines();
             foreach (var disk in disks)
             {
-                var diskMatches = disk.SplitSpaces().Trim();
+                var diskMatches = disk.SplitSpaces();
 
                 string diskName = diskMatches[2] as string;
                 BlockData block;
 
                 if (!char.IsNumber(diskName.Last()))
                 {
-                    var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, diskName)).SplitSpaces().Trim();
+                    var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, diskName)).SplitSpaces();
                     int sectorSize = int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToHWSectorSize, diskName)));
                     int blockSize = int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockSize, diskName)));
 
@@ -66,7 +66,7 @@ namespace MonitoringAgent.Monitors
             // Update blocks usage info (ms)
             foreach (var block in _blocks)
             {
-                var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, block.Key)).SplitSpaces().Trim();
+                var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, block.Key)).SplitSpaces();
 
                 int timeActive = int.Parse(blockStat[9]);
                 int timeWait = int.Parse(blockStat[10]);
@@ -80,7 +80,7 @@ namespace MonitoringAgent.Monitors
             var disks = VirtualFile.ReadToEnd(VirtualFile.PathToDiskStats).SplitLines();
             foreach (var disk in disks)
             {
-                var diskMatches = disk.SplitSpaces().Trim();
+                var diskMatches = disk.SplitSpaces();
                 string diskName = diskMatches[2] as string;
 
                 var data = _disks[diskName];

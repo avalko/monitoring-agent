@@ -10,16 +10,10 @@ namespace MonitoringAgent.Monitors
     [Monitor("cpu")]
     class CpuMonitor : BaseMonitor
     {
-        private Scanf _scanf;
         private int _lastActive, _lastIdle;
 
         public override void Init()
-        {
-            /**
-             * name usr nice sys idle iowait irq ...
-             **/
-            _scanf = Scanf.Create("%s %i %i %i %i %i %i %i %i %i %i");
-            
+        {            
             _GetCpuUsage(out int _lastActive, out int _lastIdle);
 
             Json.LoadPercent = 0;
@@ -45,11 +39,13 @@ namespace MonitoringAgent.Monitors
         private void _GetCpuUsage(out int active, out int idle)
         {
             var cpu = VirtualFile.ReadLine(VirtualFile.PathToProcStat);
-            var result = _scanf.Matches(cpu);
+            var result = cpu.SplitSpaces();
 
             // skip name
-            active = result.Skip(1).Select(x => (int)x).Sum();
-            idle = (int)result[4];
+            // user + nice + system + idle (+ iowait + irq + softirq + steal + guest + guest nice)
+            active = result.Skip(1).Select(x => int.Parse(x)).Sum();
+            idle = int.Parse(result[4]);
+            // compute only active cpu usage
             active -= idle;
         }
     }

@@ -80,7 +80,10 @@ namespace MonitoringAgent
                                     stream.Close();
                                     client.Close();
                                 }
-                                catch { }
+                                catch (Exception e)
+                                {
+                                    Log.Warning("TCP Thread Error: " + e.ToString());
+                                }
                             });
                             continue;
                         }
@@ -138,7 +141,7 @@ namespace MonitoringAgent
 
             foreach (var type in types)
             {
-                if (type.IsInstanceOfType(typeof(IMonitor)) &&
+                if (type.IsAssignableFrom(typeof(IMonitor)) &&
                     type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
                     var monitor = (IMonitor)Activator.CreateInstance(type);

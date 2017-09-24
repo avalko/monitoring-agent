@@ -23,6 +23,8 @@ namespace MonitoringAgent
                 return 1;
             }
 
+            agent.Start();
+
             if (Agent.Settings.DaemonMode || (args.Length > 0 && args[0] == "daemon"))
             {
                 Log.Info("Daemon started.");

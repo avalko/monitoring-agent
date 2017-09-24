@@ -25,8 +25,9 @@ namespace MonitoringAgent
 
         public static void WriteLine(string title, string message)
         {
-            string data = $"[{DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture)}]" +
-                          $"{title.PadLeft(50)}\n{new string(' ', 25)}{message}";
+            string data = $"[{DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture)}]" + 
+                            new string(' ', 15) +
+                            $"{title}\n{new string(' ', 25)}{message}";
             Append(data);
         }
 
@@ -35,7 +36,7 @@ namespace MonitoringAgent
             Console.WriteLine(raw);
             if (Agent.Settings.LogEnable)
                 File.AppendAllText(DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + Agent.Settings.LogFile,
-                                   raw + "\n" + new string('-', 25) + "\n");
+                                   raw + "\n" + new string('-', 50) + "\n");
         }
     }
 }

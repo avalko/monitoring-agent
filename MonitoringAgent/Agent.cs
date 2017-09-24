@@ -51,12 +51,12 @@ namespace MonitoringAgent
             }
         }
 
-        public async void Start(int port)
+        public async void Start()
         {
             _work = true;
             _Init();
 
-            _listener = new TcpListener(IPAddress.Any, port);
+            _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
             _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _listener.Start();
 

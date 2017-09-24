@@ -37,8 +37,7 @@ namespace MonitoringAgent.Monitors
                     {
                         BlockSize = sectorSize * int.Parse(VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockSize, diskName))),
                         SectorSize = sectorSize,
-                        LastTimeActive = int.Parse(blockStat[9]),
-                        LastTimeWait = int.Parse(blockStat[10]),
+                        LastTimeActive = int.Parse(blockStat[9])
                     };
                 }
                 else
@@ -69,10 +68,8 @@ namespace MonitoringAgent.Monitors
                 int timeWait = int.Parse(blockStat[10]);
 
                 block.Value.Active = (timeActive - block.Value.LastTimeActive) * 0.1;
-                block.Value.Wait = (timeWait - block.Value.LastTimeWait) * 0.1;
 
                 block.Value.LastTimeActive = timeActive;
-                block.Value.LastTimeWait = timeWait;
             }
 
             // Update all disks info (read/write bytes per sec)
@@ -111,9 +108,7 @@ namespace MonitoringAgent.Monitors
             public int BlockSize { get; set; }
 
             public double Active { get; set; }
-            public double Wait { get; set; }
             public int LastTimeActive { get; set; }
-            public int LastTimeWait { get; set; }
         }
 
         class DiskastatsData
@@ -124,7 +119,6 @@ namespace MonitoringAgent.Monitors
             public int MaxWriteBytes { get; set; }
             public int Size => Block?.BlockSize ?? 0;
             public double Active => Block?.Active ?? 0;
-            public double Wait => Block?.Wait ?? 0;
             
             [JsonIgnore]
             public BlockData Block { get; set; }

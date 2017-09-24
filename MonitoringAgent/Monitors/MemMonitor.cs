@@ -9,7 +9,6 @@ namespace MonitoringAgent.Monitors
     [Monitor("mem")]
     class MemMonitor  : BaseMonitor
     {
-
         public override void Init()
         {
             Json.Total = 0;

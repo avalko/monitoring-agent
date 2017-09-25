@@ -24,13 +24,16 @@ namespace MonitoringAgent.Tests
         }
 
         [TestMethod]
+        
         public void TestWork()
         {
+            Agent.Init();
             Agent.Start();
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
             string data = HttpGet($"http://localhost:{Agent.Settings.AgentPort}/");
             dynamic json = JObject.Parse(data);
             Assert.IsTrue(json.cpu.Cores == System.Environment.ProcessorCount);
+            Assert.IsTrue(json.mem.Total > 0);
         }
 
         private static string HttpGet(string url)

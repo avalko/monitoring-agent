@@ -24,9 +24,9 @@ namespace MonitoringAgent
         private static TcpListener _listener;
         private static bool _runned;
 
-        public static void Init(bool reInit = false)
+        public static void Init()
         {
-            _Init(reInit);
+            _Init();
         }
 
         public static async void Start()
@@ -171,9 +171,9 @@ namespace MonitoringAgent
             }
         }
 
-        private static void _Init(bool reInit = false)
+        private static void _Init()
         {
-            _InitSettings(reInit);
+            _InitSettings();
             _InitMonitors();
 
             _history = new JsonHistory();

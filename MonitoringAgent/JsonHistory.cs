@@ -7,7 +7,7 @@ using System.Text;
 
 namespace MonitoringAgent
 {
-    struct HistoryItem
+    public struct HistoryItem
     {
         public static HistoryItem Null { get; } = new HistoryItem() { Time = DateTime.MinValue };
 
@@ -39,9 +39,9 @@ namespace MonitoringAgent
         }
     }
 
-    class JsonHistory : IDisposable
+    public class JsonHistory : IDisposable
     {
-        private const string HISTORY_PATH = "history.dat";
+        public const string HISTORY_PATH = "history.dat";
 
         private List<HistoryItem> _history;
         public static readonly DateTime DateStartEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);

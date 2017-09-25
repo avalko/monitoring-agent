@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/avalko/monitoring-agent.svg?branch=master)](https://travis-ci.org/avalko/monitoring-agent)
+
 monitoring-agent v1.0
 =====
 Monitoring your server.

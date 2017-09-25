@@ -61,8 +61,8 @@ namespace MonitoringAgent.Monitors
                     Log.Debug($" - Default");
                 }
 
-                int readBytes = int.Parse(diskMatches[5]) * block?.SectorSize ?? 1;
-                int writBytes = int.Parse(diskMatches[9]) * block?.SectorSize ?? 1;
+                long readBytes = long.Parse(diskMatches[5]) * block?.SectorSize ?? 1;
+                long writBytes = long.Parse(diskMatches[9]) * block?.SectorSize ?? 1;
 
                 _disks[diskName] = new DiskastatsData()
                 {
@@ -97,8 +97,8 @@ namespace MonitoringAgent.Monitors
 
                 var data = _disks[diskName];
 
-                int currentBytesReads = int.Parse(diskMatches[5]) * data.Block.SectorSize;
-                int currentBytesWrites = int.Parse(diskMatches[9]) * data.Block.SectorSize;
+                long currentBytesReads = long.Parse(diskMatches[5]) * data.Block.SectorSize;
+                long currentBytesWrites = long.Parse(diskMatches[9]) * data.Block.SectorSize;
 
                 data.ReadBytes = currentBytesReads - data.LastReadBytes;
                 data.WriteBytes = currentBytesWrites - data.LastWriteBytes;
@@ -129,19 +129,19 @@ namespace MonitoringAgent.Monitors
 
         class DiskastatsData
         {
-            public int ReadBytes { get; set; }
-            public int WriteBytes { get; set; }
-            public int MaxReadBytes { get; set; }
-            public int MaxWriteBytes { get; set; }
+            public long ReadBytes { get; set; }
+            public long WriteBytes { get; set; }
+            public long MaxReadBytes { get; set; }
+            public long MaxWriteBytes { get; set; }
             public int Size => Block?.BlockSize ?? 0;
             public double Active => Block?.Active ?? 0;
             
             [JsonIgnore]
             public BlockData Block { get; set; }
             [JsonIgnore]
-            public int LastReadBytes { get; set; }
+            public long LastReadBytes { get; set; }
             [JsonIgnore]
-            public int LastWriteBytes { get; set; }
+            public long LastWriteBytes { get; set; }
         }
     }
 }

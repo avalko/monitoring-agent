@@ -50,11 +50,15 @@ namespace MonitoringAgent.Monitors
                 }
                 else
                 {
-                    Log.Debug($" - Default");
                     block = _blocks.FirstOrDefault(x => diskName.StartsWith(x.Key)).Value;
 
                     if (block.BlockSize == 0)
+                    {
+                        Log.Debug($" - Skip");
                         continue;
+                    }
+
+                    Log.Debug($" - Default");
                 }
 
                 int readBytes = int.Parse(diskMatches[5]) * block?.SectorSize ?? 1;

@@ -38,6 +38,8 @@ namespace MonitoringAgent.Monitors
                     continue;
                 string value = items[1].SplitSpaces()[0];
 
+                Log.Debug($"Mem: {items[0]} = {value}");
+
                 switch (items[0])
                 {
                     // all in KiB

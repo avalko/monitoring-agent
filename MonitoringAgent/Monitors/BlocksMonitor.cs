@@ -52,6 +52,9 @@ namespace MonitoringAgent.Monitors
                 {
                     Log.Debug($" - Default");
                     block = _blocks.FirstOrDefault(x => diskName.StartsWith(x.Key)).Value;
+
+                    if (block.BlockSize == 0)
+                        continue;
                 }
 
                 int readBytes = int.Parse(diskMatches[5]) * block?.SectorSize ?? 1;

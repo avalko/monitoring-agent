@@ -95,6 +95,9 @@ namespace MonitoringAgent.Monitors
                 var diskMatches = disk.SplitSpaces();
                 string diskName = diskMatches[2] as string;
 
+                if (!_disks.ContainsKey(diskName))
+                    continue;
+
                 var data = _disks[diskName];
 
                 long currentBytesReads = long.Parse(diskMatches[5]) * data.Block.SectorSize;

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitoringAgent", "MonitoringAgent\MonitoringAgent.csproj", "{BF89A1B7-B595-4FE6-9699-76F20732D459}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonitoringAgent", "MonitoringAgent\MonitoringAgent.csproj", "{BF89A1B7-B595-4FE6-9699-76F20732D459}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitoringAgent.Tests", "MonitoringAgent.Tests\MonitoringAgent.Tests.csproj", "{AE0502F0-A8C3-4BCB-BFC6-1BD1D5BD61CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{BF89A1B7-B595-4FE6-9699-76F20732D459}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF89A1B7-B595-4FE6-9699-76F20732D459}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF89A1B7-B595-4FE6-9699-76F20732D459}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE0502F0-A8C3-4BCB-BFC6-1BD1D5BD61CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE0502F0-A8C3-4BCB-BFC6-1BD1D5BD61CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE0502F0-A8C3-4BCB-BFC6-1BD1D5BD61CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE0502F0-A8C3-4BCB-BFC6-1BD1D5BD61CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,9 +13,9 @@ using System.Web;
 
 namespace MonitoringAgent
 {
-    class Agent
+    public class Agent
     {
-        private const string settingsFilename = "settings.json";
+        public const string SettingsFilename = "settings.json";
 
         public static Settings Settings { get; private set; } = new Settings();
 
@@ -24,14 +24,17 @@ namespace MonitoringAgent
         private static TcpListener _listener;
         private static bool _runned;
 
+        public static void Init(bool reInit = false)
+        {
+            _Init(reInit);
+        }
+
         public static async void Start()
         {
             if (_runned)
                 return;
 
             _runned = true;
-
-            _Init();
 
             _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
             _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -168,37 +171,36 @@ namespace MonitoringAgent
             }
         }
 
-        private static void _Init()
+        private static void _Init(bool reInit = false)
         {
-            _InitSettings();
+            _InitSettings(reInit);
             _InitMonitors();
 
             _history = new JsonHistory();
         }
 
-        private static void _InitSettings()
+        private static void _InitSettings(bool reInit = false)
         {
-            if (!File.Exists(settingsFilename))
+            if (reInit || !File.Exists(SettingsFilename))
             {
                 try
                 {
-                    File.WriteAllText(settingsFilename, JsonConvert.SerializeObject(Settings));
+                    File.WriteAllText(SettingsFilename, JsonConvert.SerializeObject(Settings));
                 }
                 catch
                 {
-                    Console.WriteLine($"Error write to \"{Path.GetFullPath(settingsFilename)}\"!");
+                    Console.WriteLine($"Error write to \"{Path.GetFullPath(SettingsFilename)}\"!");
                     Environment.Exit(-1);
                 }
-                return;
             }
 
             try
             {
-                Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingsFilename));
+                Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFilename));
             }
             catch
             {
-                Log.Critical($"Error read \"{Path.GetFullPath(settingsFilename)}\"!");
+                Log.Critical($"Error read \"{Path.GetFullPath(SettingsFilename)}\"!");
                 Environment.Exit(-1);
             }
 

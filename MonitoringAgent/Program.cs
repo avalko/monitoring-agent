@@ -18,10 +18,11 @@ namespace MonitoringAgent
 
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                Log.Critical("Only UNIX!");
+                Log.Critical("Windows is not supported!");
                 return 1;
             }
 
+            Agent.Init();
             Agent.Start();
 
             if (Agent.Settings.DaemonMode || args.FirstOrDefault() == "daemon")

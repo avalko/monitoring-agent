@@ -46,7 +46,7 @@ namespace MonitoringAgent
                         try
                         {
                             var client = _listener.AcceptTcpClient();
-                            ThreadPool.QueueUserWorkItem(_NewClientProcess);
+                            ThreadPool.QueueUserWorkItem(_NewClientProcess, client);
                             continue;
                         }
                         catch (Exception e)

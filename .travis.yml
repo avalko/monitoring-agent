@@ -4,5 +4,5 @@ mono: none
 dotnet: 2.0.0
 script:
  - dotnet restore
- - dotnet publish -c Release
- - dotnet test /home/travis/build/avalko/monitoring-agent/MonitoringAgent.Tests/MonitoringAgent.Tests.csproj -c Release
+ - dotnet publish -c Debug
+ - dotnet test /home/travis/build/avalko/monitoring-agent/MonitoringAgent.Tests/MonitoringAgent.Tests.csproj -c Debug

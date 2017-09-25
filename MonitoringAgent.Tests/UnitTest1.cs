@@ -31,6 +31,7 @@ namespace MonitoringAgent.Tests
             Agent.Start();
             Thread.Sleep(1000);
             string data = HttpGet($"http://localhost:{Agent.Settings.AgentPort}/");
+            Log.Info(data);
             dynamic json = JObject.Parse(data);
             //Assert.IsTrue(json.cpu.Cores == System.Environment.ProcessorCount);
             Assert.IsTrue(json.mem.Total > 0);

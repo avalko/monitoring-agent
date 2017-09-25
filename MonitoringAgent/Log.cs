@@ -13,6 +13,13 @@ namespace MonitoringAgent
             WriteLine("Information", message);
         }
 
+        public static void Debug(string message)
+        {
+#if DEBUG
+            WriteLine("Debug", message);
+#endif
+        }
+
         public static void Warning(string message)
         {
             WriteLine("- Warning -", message);

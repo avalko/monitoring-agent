@@ -29,6 +29,8 @@ namespace MonitoringAgent.Monitors
                 string diskName = diskMatches[2] as string;
                 BlockData block;
 
+                Log.Debug($"Disk {diskName}");
+
                 if (!char.IsNumber(diskName.Last()))
                 {
                     var blockStat = VirtualFile.ReadLine(string.Format(VirtualFile.PathToBlockStat, diskName)).SplitSpaces();
@@ -37,6 +39,8 @@ namespace MonitoringAgent.Monitors
 
                     // Convert to megabytes
                     blockSize = (int)((blockSize / (1024.0 * 1024.0)) * sectorSize);
+
+                    Log.Debug($" - Block ({sectorSize}bps) {blockSize}MiB");
                     _blocks[diskName] = block = new BlockData()
                     {
                         BlockSize = blockSize,
@@ -46,7 +50,8 @@ namespace MonitoringAgent.Monitors
                 }
                 else
                 {
-                    block = _blocks.First(x => diskName.StartsWith(x.Key)).Value;
+                    Log.Debug($" - Default");
+                    block = _blocks.FirstOrDefault(x => diskName.StartsWith(x.Key)).Value;
                 }
 
                 int readBytes = int.Parse(diskMatches[5]) * block?.SectorSize ?? 1;

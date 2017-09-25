@@ -69,8 +69,7 @@ namespace MonitoringAgent
                 await Task.Delay(1000);
                 try
                 {
-                    foreach (var monitor in _monitors)
-                        monitor.Update();
+                    _monitors.ForEach(monitor => monitor.Update());
                     _history.Insert(_GetJsonWithoutStatic());
                     _history.ClearHistoryIfOverflow();
                 }
@@ -237,8 +236,7 @@ namespace MonitoringAgent
                 }
             }
 
-            foreach (var monitor in _monitors)
-                monitor.Init();
+            _monitors.ForEach(monitor => monitor.Init());
         }
     }
 }

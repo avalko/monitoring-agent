@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Reflection;
 
 namespace MonitoringAgent
 {
@@ -229,7 +230,7 @@ namespace MonitoringAgent
                 {
                     Log.Info($"Init Register monitor: {type.Name}");
                     var monitor = (IMonitor)Activator.CreateInstance(type);
-                    monitor.Tag = ((MonitorAttribute)monitor.GetType().GetCustomAttributes(true).First(x => x is MonitorAttribute))
+                    monitor.Tag = ((MonitorAttribute)monitor.GetType().GetTypeInfo().GetCustomAttribute<MonitorAttribute>())
                                     .Tag;
                     _monitors.Add(monitor);
                 }

@@ -52,7 +52,7 @@ namespace MonitoringAgent.Monitors
                 {
                     block = _blocks.FirstOrDefault(x => diskName.StartsWith(x.Key)).Value;
 
-                    if (block.BlockSize == 0)
+                    if (block == null || block.BlockSize == 0)
                     {
                         Log.Debug($" - Skip");
                         continue;

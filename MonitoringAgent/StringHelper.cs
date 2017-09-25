@@ -46,6 +46,11 @@ namespace MonitoringAgent
             return EmptyStringArray;
         }
 
+        public static string JoinString(this IEnumerable<string> stringArray, string separator = "")
+        {
+            return string.Join(separator, stringArray);
+        }
+
         public static string[] Trim(this string[] stringArray, params char[] trimChars)
         {
             if (stringArray.Length > 0)

@@ -15,30 +15,169 @@ namespace MonitoringAgent
 {
     class Agent
     {
-        private const string HISTORY_PATH = "history.dat";
+        private const string settingsFilename = "settings.json";
 
         public static Settings Settings { get; private set; } = new Settings();
 
-        private List<IMonitor> _monitors = new List<IMonitor>();
-        private TcpListener _listener;
-        private bool _work;
+        private static List<IMonitor> _monitors = new List<IMonitor>();
+        private static JsonHistory _history;
+        private static TcpListener _listener;
+        private static bool _runned;
 
-        private List<HistoryItem> _history;
-        private readonly DateTime _dateStartEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-        private DateTime _lastHistorySave = DateTime.MinValue;
-        private int _flushedToHistory = 0;
-
-        struct HistoryItem
+        public static async void Start()
         {
-            public static HistoryItem Null { get; } = new HistoryItem();
+            if (_runned)
+                return;
 
-            public DateTime Time { get; set; }
-            public string Json { get; set; }
+            _runned = true;
+
+            _Init();
+
+            _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
+            _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            _listener.Start();
+
+            new Thread(async () =>
+            {
+                while (_runned)
+                {
+                    if (_listener.Pending())
+                    {
+                        try
+                        {
+                            var client = _listener.AcceptTcpClient();
+                            ThreadPool.QueueUserWorkItem(_NewClientProcess);
+                            continue;
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Warning("TCP Server Error: " + e.ToString());
+                        }
+                    }
+                    await Task.Delay(100);
+                }
+            }).Start();
+
+            Log.Info("TCP server started.");
+
+            while (_runned)
+            {
+                await Task.Delay(1000);
+                try
+                {
+                    _monitors.ForEach(monitor => monitor.Update());
+                    _history.Insert(_GetJsonWithoutStatic());
+                    _history.ClearHistoryIfOverflow();
+                }
+                catch (Exception e)
+                {
+                    Log.Warning("Monitoring update error: " + e.ToString());
+                }
+
+                _history.AutoSave();
+            }
         }
 
-        public Agent()
+        public static void Stop()
         {
-            const string settingsFilename = "settings.json";
+            if (!_runned)
+                return;
+
+            _runned = false;
+            _history.Dispose();
+            _history = null;
+
+            if (_listener != null)
+            {
+                try
+                {
+                    _listener.Stop();
+                    _listener = null;
+                }
+                catch { }
+            }
+        }
+
+        private static string _GetJson()
+        {
+            return "{" + string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
+        }
+
+        private static string _GetJsonWithoutStatic()
+        {
+            return "{" + string.Join(',', _monitors.Where(x => !x.Static).Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
+        }
+
+        private static string _GetHistoryJson(int last)
+        {
+            return "{" + _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturn))
+                                 .Select(item => $"\"{item.TimeStamp}\": {item.Json}").JoinString() + "}";
+        }
+
+        private static async void _NewClientProcess(object arg)
+        {
+            try
+            {
+                TcpClient client = arg as TcpClient;
+                byte[] buffer = new byte[512];
+                var stream = client.GetStream();
+                string data = "";
+                int length = 0;
+                if ((length = stream.Read(buffer, 0, 512)) > 0)
+                {
+                    data += Encoding.ASCII.GetString(buffer, 0, length);
+                }
+
+                string returnData = "HTTP/1.1 200 OK\n\n";
+                byte[] returnBytes;
+
+                string firstLine = data.SplitLines().First();
+                string[] fullRequest = firstLine.SplitSpaces().Skip(1).First().Split('?');
+                string request = fullRequest.First();
+
+                if (request == "history")
+                {
+                    string query = fullRequest.Skip(1).JoinString();
+                    int last = 100;
+                    if (!string.IsNullOrEmpty(query))
+                    {
+                        var get = HttpUtility.ParseQueryString(query);
+                        if (get.HasKeys() && get.AllKeys.Contains("last") &&
+                            int.TryParse(get["last"], out int tmpLast))
+                        {
+                            last = tmpLast;
+                        }
+                    }
+
+                    returnData += _GetHistoryJson(last);
+                }
+                else
+                    returnData += _GetJson();
+
+
+                returnBytes = Encoding.UTF8.GetBytes(returnData);
+                await stream.WriteAsync(returnBytes, 0, returnBytes.Length);
+
+                stream.Close();
+                client.Close();
+                buffer = null;
+            }
+            catch (Exception e)
+            {
+                Log.Warning("TCP Thread Error: " + e.ToString());
+            }
+        }
+
+        private static void _Init()
+        {
+            _InitSettings();
+            _InitMonitors();
+
+            _history = new JsonHistory();
+        }
+
+        private static void _InitSettings()
+        {
             if (!File.Exists(settingsFilename))
             {
                 try
@@ -75,200 +214,11 @@ namespace MonitoringAgent
                     Environment.Exit(-1);
                 }
             }
-
-            if (File.Exists(HISTORY_PATH))
-            {
-                try
-                {
-                    var lines = File.ReadAllLines(HISTORY_PATH);
-                    Log.Info($"History exist ({lines.Length} lines).");
-                    _history = lines.Select(line =>
-                    {
-                        var arr = line.Split(';');
-                        if (arr.Length < 2)
-                            return HistoryItem.Null;
-                        return new HistoryItem()
-                        {
-                            Time = _dateStartEpoch.AddSeconds(int.Parse(arr[0])),
-                            Json = arr[1]
-                        };
-                    }).Where(x => !x.Equals(HistoryItem.Null)).ToList();
-                    _flushedToHistory = _history.Count;
-                }
-                catch (Exception e)
-                {
-                    _history = new List<HistoryItem>();
-                    Log.Warning($"Can't read history: {e}");
-                }
-            }
-            else
-            {
-                _history = new List<HistoryItem>();
-            }
-
-            _ClearHistoryIfOverflow();
         }
 
-        public async void Start()
+        private static void _InitMonitors()
         {
-            _work = true;
-            _Init();
-
-            _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
-            _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            _listener.Start();
-
-            new Thread(async () =>
-            {
-                while (_work)
-                {
-                    if (_listener.Pending())
-                    {
-                        try
-                        {
-                            var client = _listener.AcceptTcpClient();
-                            ThreadPool.QueueUserWorkItem(async (_) =>
-                            {
-                                try
-                                {
-                                    byte[] buffer = new byte[512];
-                                    var stream = client.GetStream();
-                                    string data = "";
-                                    int length = 0;
-                                    if ((length = stream.Read(buffer, 0, 512)) > 0)
-                                    {
-                                        data += Encoding.ASCII.GetString(buffer, 0, length);
-                                    }
-
-                                    string returnData = "HTTP/1.1 200 OK\n\n";
-                                    byte[] returnBytes;
-                                    if (data.StartsWith("GET /historyAll"))
-                                    {
-                                        returnData += GetHistoryJson();
-                                    }
-                                    else if (data.StartsWith("GET /history"))
-                                    {
-                                        int last = 100;
-                                        if (data.Contains("?"))
-                                        {
-                                            var arr = data.SplitSpaces();
-                                            if (arr.Length >= 3)
-                                            {
-                                                arr = arr[1].Split('?');
-                                                if (arr.Length > 1)
-                                                {
-                                                    var get = HttpUtility.ParseQueryString(arr[1]);
-                                                    if (get.AllKeys.Contains("last") && int.TryParse(get["last"], out int tmpLast))
-                                                    {
-                                                        last = tmpLast;
-                                                        Log.Info("Last = " + last);
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        returnData += GetHistoryJson(last);
-                                    }
-                                    else
-                                    {
-                                        returnData += GetJson();
-                                    }
-                                    returnBytes = Encoding.UTF8.GetBytes(returnData);
-                                    await stream.WriteAsync(returnBytes, 0, returnBytes.Length);
-
-                                    stream.Close();
-                                    client.Close();
-                                    buffer = null;
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.Warning("TCP Thread Error: " + e.ToString());
-                                }
-                            });
-                            continue;
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Warning("TCP Server Error: " + e.ToString());
-                        }
-                    }
-                    await Task.Delay(100);
-                }
-            }).Start();
-
-            Log.Info("TCP server started.");
-
-            while (_work)
-            {
-                await Task.Delay(1000);
-                try
-                {
-                    _monitors.ForEach(monitor => monitor.Update());
-                    _history.Insert(0, new HistoryItem() { Time = DateTime.UtcNow, Json = GetJsonWithoutStatic() });
-                    _ClearHistoryIfOverflow();
-                }
-                catch (Exception e)
-                {
-                    Log.Warning("Monitoring update error: " + e.ToString());
-                }
-
-                if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Settings.AutoSave))
-                {
-                    _FlushHistory();
-                    _lastHistorySave = DateTime.Now;
-                }
-            }
-        }
-
-        public string GetHistoryJson(int last = 10)
-        {
-            IEnumerable<HistoryItem> arr = _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturn));
-
-            return "{" + string.Join(',', arr.Select(item => $"\"{(int)item.Time.Subtract(_dateStartEpoch).TotalSeconds}\": {item.Json}")) + "}";
-        }
-
-        public string GetJson()
-        {
-            return "{" + string.Join(',', _monitors.Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
-        }
-
-        public string GetJsonWithoutStatic()
-        {
-            return "{" + string.Join(',', _monitors.Where(x => !x.Static).Select(monitor => $"\"{monitor.Tag}\": {monitor.GetJson()}")) + "}";
-        }
-
-        public void Stop()
-        {
-            _FlushHistory();
-
-            _work = false;
-            if (_listener != null)
-            {
-                try
-                {
-                    _listener.Stop();
-                }
-                catch { }
-            }
-        }
-
-        private void _FlushHistory()
-        {
-            try
-            {
-                var items = _history.Skip(_flushedToHistory).Select(x => $"{(int)x.Time.Subtract(_dateStartEpoch).TotalSeconds};{x.Json}");
-                if (items.Count() > 0)
-                {
-                    _flushedToHistory += items.Count();
-                    File.AppendAllText(HISTORY_PATH, string.Join('\n', items));
-                }
-            }
-            catch { }
-        }
-
-        private void _Init()
-        {
-            var types = this.GetType().Assembly.GetTypes();
+            var types = typeof(Agent).Assembly.GetTypes();
 
             foreach (var type in types)
             {
@@ -284,15 +234,6 @@ namespace MonitoringAgent
             }
 
             _monitors.ForEach(monitor => monitor.Init());
-        }
-
-        private void _ClearHistoryIfOverflow()
-        {
-            if (_history.Count > Settings.SaveHistory)
-            {
-                _history.RemoveRange(0, _history.Count - Settings.SaveHistory);
-            }
-
         }
     }
 }

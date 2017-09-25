@@ -10,10 +10,9 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
-            var agent = new Agent();
             AssemblyLoadContext.Default.Unloading += delegate
             {
-                agent.Stop();
+                Agent.Stop();
                 Log.Info("Good bye!");
             };
 
@@ -23,9 +22,9 @@ namespace MonitoringAgent
                 return 1;
             }
 
-            agent.Start();
+            Agent.Start();
 
-            if (Agent.Settings.DaemonMode || (args.Length > 0 && args[0] == "daemon"))
+            if (Agent.Settings.DaemonMode || args.FirstOrDefault() == "daemon")
             {
                 Log.Info("Daemon started.");
                 Thread.Sleep(Timeout.Infinite);
@@ -34,7 +33,7 @@ namespace MonitoringAgent
                 Console.WriteLine("Press Enter to exit.");
 
             Console.Read();
-            agent.Stop();
+            Agent.Stop();
 
             return 0;
         }

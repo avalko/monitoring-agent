@@ -29,7 +29,7 @@ cd monitoring-agent/MonitoringAgent
 dotnet restore
 dotnet publish -c Release
 # Run on localhost:17175
-dotnet bin/Release/netcoreapp2.0/MonitoringAgent.dll 17175
+dotnet bin/Release/netcoreapp2.0/MonitoringAgent.dll
 ```
 
 
@@ -58,7 +58,7 @@ namespace MonitoringAgent.Monitors
 ## Usage exmaple (using jQuery)
 ```JS
 setInterval(function () {
-  $.getJSON('localhost:17175', function (data) {
+  $.getJSON('localhost:5000', function (data) {
       console.log(data.test.Your);
       console.log(data.test.Custom);
       console.log(data.test.Data);

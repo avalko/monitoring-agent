@@ -11,6 +11,9 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
+            Console.WriteLine("Wait debugger...");
+            Console.ReadLine();
+
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 Log.Critical("Windows is not supported!");

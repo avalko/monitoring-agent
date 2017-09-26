@@ -16,7 +16,7 @@ namespace MonitoringAgent
                 return 1;
             }
 
-            string firstArgument = args.FirstOrDefault().TrimStart(new char[] { '-', '/' });
+            string firstArgument = args.FirstOrDefault()?.TrimStart(new char[] { '-', '/' }) ?? "";
 
             switch (firstArgument)
             {

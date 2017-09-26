@@ -205,11 +205,9 @@ namespace MonitoringAgent
                 _InitSettings(true);
                 return;
             }
-            else
-            {
-                _InitLogging();
-                _InitSettings(false);
-            }
+
+            _InitSettings(false);
+            _InitLogging();
             _InitMonitors();
 
             _history = new JsonHistory();
@@ -250,7 +248,7 @@ namespace MonitoringAgent
             catch
             {
                 Log.Critical($"Error reading file: \"{Path.GetFullPath(SettingsFilename)}\"!");
-                Environment.Exit(-1);
+                Environment.Exit(1);
             }
 
             try
@@ -268,7 +266,7 @@ namespace MonitoringAgent
                     catch
                     {
                         Log.Critical($"Error saving old settings!");
-                        Environment.Exit(-1);
+                        Environment.Exit(1);
                     }
 
                     _WriteDefaultToSettingsFile();
@@ -277,7 +275,7 @@ namespace MonitoringAgent
             catch
             {
                 Log.Critical($"Loading error: \"{Path.GetFullPath(SettingsFilename)}\"!");
-                Environment.Exit(-1);
+                Environment.Exit(1);
             }
         }
 
@@ -290,8 +288,8 @@ namespace MonitoringAgent
             }
             catch
             {
-                Console.WriteLine($"Error writing to file \"{Path.GetFullPath(SettingsFilename)}\"!");
-                Environment.Exit(-1);
+                Log.Critical($"Error writing to file \"{Path.GetFullPath(SettingsFilename)}\"!");
+                Environment.Exit(1);
             }
         }
 

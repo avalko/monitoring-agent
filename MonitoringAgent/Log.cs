@@ -51,18 +51,26 @@ namespace MonitoringAgent
 
         public static void WriteLine(string title, string message)
         {
-            string data = $"[{DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture)}]" + 
-                            new string(' ', 15) +
-                            $"{title}\n{new string(' ', 25)}{message}";
-            Append(data);
+            string data = "";
+            string timeStamp = DateTime.Now.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+
+            if (_initialized && Agent.Settings.LoggingEnabled)
+            {
+                data = $"[{timeStamp}]" +
+                         new string(' ', 15) +
+                         $"{title}\n{new string(' ', 25)}{message}";
+                Append(data);
+            }
+            else
+                Console.WriteLine($"[{timeStamp}] {title}: {message}");
         }
 
         private static void Append(string raw)
         {
             Console.WriteLine(raw);
-            if (_initialized && Agent.Settings.LoggingEnabled)
-                File.AppendAllText(Agent.Settings.LoggingDirectory + "/" + DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".log",
-                                   raw + "\n" + new string('-', 50) + "\n");
+            string date = DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+            File.AppendAllText(Agent.Settings.LoggingDirectory + "/" + date + ".log",
+                               raw + "\n" + new string('-', 50) + "\n");
         }
     }
 }

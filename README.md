@@ -31,7 +31,6 @@ cd monitoring-agent
 # [Output example] Your token: 917700A0CB394840992BF2142A92DDE7
 # Minore update
 ./build.sh
-# [Output] Your token: 
 ```
 ## Run
 ```BASH
@@ -39,6 +38,29 @@ cd monitoring-agent
 cd monitoring-agent
 ./run.sh
 ```
+
+## Info
+Two files are created in the working directory:
+#### settings.json
+At the moment the following variables are available:
++ AgentPort (default 5000)
++ LoggingEnabled (default true)
++ LoggingDirectory (deafult "logs")
++ DaemonMode (default false)<br>
+    *If true is specified, the program will wait for the end signal (Ctrl+C or `service magent stop`)*
++ SaveHistorySeconds (default 2678400)<br>
+    *Specifies for which period to store the history in the "history.dat" file in seconds.*<br>
+    ***Format:***<br>
+    `unix timestamp;{"prop": {...}, ...}`
++ AutoSaveHistorySeconds
++ AutoSaveHistoryEnabled
++ MaxReturnHistoryItems
++ TokenString
+
+You can always create a corrected file with the settings using ./init.sh<br>
+All available variables will appear there.
+#### history.dat
+
 
 ## Monitor template:
 You can create your own monitor.

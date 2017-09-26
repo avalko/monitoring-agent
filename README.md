@@ -50,8 +50,6 @@ At the moment the following variables are available:
     *If true is specified, the program will wait for the end signal (Ctrl+C or `service magent stop`)*
 + SaveHistorySeconds (default 2678400)<br>
     *Specifies for which period to store the history in the "history.dat" file in seconds.*<br>
-    ***Format:***<br>
-    `unix timestamp;{"prop": {...}, ...}`
 + AutoSaveHistorySeconds
 + AutoSaveHistoryEnabled
 + MaxReturnHistoryItems

@@ -313,7 +313,7 @@ namespace MonitoringAgent
                 if (type.GetInterfaces().Contains(typeof(IMonitor)) &&
                     type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
-                    Log.Info($"Registered monitor: {type.Name}");
+                    Log.Debug($"Registered monitor: {type.Name}");
                     var monitor = (IMonitor)Activator.CreateInstance(type);
                     monitor.Tag = ((MonitorAttribute)monitor.GetType().GetTypeInfo().GetCustomAttribute<MonitorAttribute>())
                                     .Tag;

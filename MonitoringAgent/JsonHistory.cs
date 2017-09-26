@@ -64,7 +64,8 @@ namespace MonitoringAgent
 
         public IEnumerable<HistoryItem> Take(int last)
         {
-            return _history.Take(last);
+            return new List<HistoryItem>(_history.Take(last));
+            //return _history.Take(last);
         }
 
         public void Flush()

@@ -203,6 +203,8 @@ namespace MonitoringAgent
                             _history.AddFirst(new HistoryItem() { Json = json, Time = DateStartEpoch.AddSeconds(currentTimestamp) });
                         }
                     }
+
+                    Log.Info($"History loaded ({TimeSpan.FromSeconds(_history.Count).ToString("c", CultureInfo.InvariantCulture)}).");
                 }
                 catch (Exception e)
                 {

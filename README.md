@@ -6,10 +6,10 @@ Monitoring your server.
 
 # Requirements
 ### [.NET Core 2.0](https://www.microsoft.com/net/core)
-Install on debian:
+Install .NET Core on debian:
 ```BASH
 apt-get update
-apt-get install --assume-yes curl libunwind8 gettext apt-transport-https
+apt-get install curl libunwind8 gettext apt-transport-https
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
 mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
 # Debian 9 (Stretch)
@@ -20,18 +20,25 @@ apt-get update
 apt-get install dotnet-sdk-2.0.0
 ```
 
-## Install and run
+## Install agent
 ```BASH
-git clone git@github.com:avalko/monitoring-agent.git
-# or
-# git clone https://github.com/avalko/monitoring-agent.git
-cd monitoring-agent/MonitoringAgent
-dotnet restore
-dotnet publish -c Release
-# Run on localhost:17175
-dotnet bin/Release/netcoreapp2.0/MonitoringAgent.dll
+git clone https://github.com/avalko/monitoring-agent.git
+cd monitoring-agent
+# First install or big updates
+./full-build.sh
+# Create settings.json (first init)
+./init.sh
+# [Output example] Your token: 917700A0CB394840992BF2142A92DDE7
+# Minore update
+./build.sh
+# [Output] Your token: 
 ```
-
+## Run
+```BASH
+# You must be in the project directory
+cd monitoring-agent
+./run.sh
+```
 
 ## Monitor template:
 You can create your own monitor.
@@ -55,10 +62,12 @@ namespace MonitoringAgent.Monitors
     }
 }
 ```
+
 ## Usage exmaple (using jQuery)
 ```JS
+var token = '917700A0CB394840992BF2142A92DDE7';
 setInterval(function () {
-  $.getJSON('localhost:5000', function (data) {
+  $.getJSON('localhost:5000/' + token, function (data) {
       console.log(data.test.Your);
       console.log(data.test.Custom);
       console.log(data.test.Data);

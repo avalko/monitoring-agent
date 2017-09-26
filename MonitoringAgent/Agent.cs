@@ -55,6 +55,8 @@ namespace MonitoringAgent
             _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _listener.Start();
 
+            Log.Info($"Started on port: {Settings.AgentPort}");
+
             // Starting an infinite loop of the HTTP server.
             new Thread(async () =>
             {

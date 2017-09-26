@@ -60,7 +60,9 @@ namespace MonitoringAgent
                 Thread.Sleep(Timeout.Infinite);
             }
             else
+            {
                 Console.WriteLine("Press Enter to exit.");
+            }
 
             Console.Read();
             Agent.Stop();

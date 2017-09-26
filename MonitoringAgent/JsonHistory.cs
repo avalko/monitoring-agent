@@ -166,9 +166,7 @@ namespace MonitoringAgent
                         // Then we count how many records we need to skip.
                         int diff = countOfHistoryItems - Agent.Settings.SaveHistorySeconds;
                         if (diff > 0)
-                            Log.Info($"Skipped: {diff} ({TimeSpan.FromSeconds(diff).ToString("c", CultureInfo.InvariantCulture)}) items");
-
-                        Log.Info($"Prevent: {stream.Position}; {stream.Length}");
+                            Log.Info($" - Skipped: {diff} ({TimeSpan.FromSeconds(diff).ToString("c", CultureInfo.InvariantCulture)}) items");
 
                         // Each entry is:
                         // The first 4 bytes (int32) is a timestamp.
@@ -184,8 +182,6 @@ namespace MonitoringAgent
                             // Skip length of json.
                             stream.Position += currentDataLength;
                         }
-
-                        Log.Info($"After: {stream.Position}; {stream.Length}");
 
                         while (stream.Position < stream.Length)
                         {

@@ -10,14 +10,13 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
-
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 Log.Critical("Windows is not supported!");
                 return 1;
             }
 
-            string firstArgument = args.FirstOrDefault();
+            string firstArgument = args.FirstOrDefault().TrimStart(new char[] { '-', '/' });
 
             switch (firstArgument)
             {
@@ -29,6 +28,7 @@ namespace MonitoringAgent
                 case "d":
                     _NormalMode(true);
                     break;
+                case "r":
                 default:
                     _NormalMode(false);
                     break;

@@ -231,6 +231,10 @@ namespace MonitoringAgent
                         Environment.Exit(0);
                     }
                 }
+                else
+                {
+                    _WriteDefaultToSettingsFile();
+                }
                 return;
             }
 

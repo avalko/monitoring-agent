@@ -163,8 +163,10 @@ namespace MonitoringAgent
                         byte[] numberBuffer = new byte[8];
                         int currentTimestamp, currentDataLength;
 
+                        Log.Info($"Count of history items: {countOfHistoryItems} ({TimeSpan.FromSeconds(countOfHistoryItems).ToString("c", CultureInfo.InvariantCulture)})");
                         // Then we count how many records we need to skip.
-                        int diff = countOfHistoryItems - Agent.Settings.AutoSaveHistorySeconds;
+                        int diff = countOfHistoryItems - Agent.Settings.SaveHistorySeconds;
+                        Log.Info($"Skipped: {diff} ({TimeSpan.FromSeconds(diff).ToString("c", CultureInfo.InvariantCulture)}) items");
 
                         // Each entry is:
                         // The first 4 bytes (int32) is a timestamp.
@@ -174,11 +176,11 @@ namespace MonitoringAgent
                         // Performance! :D
                         while (diff-- > 0)
                         {
+                            stream.Read(numberBuffer, 0, 8);
                             // Skip length of timestamp (int32 = 4 bytes).
                             stream.Position += 4;
                             // Reading length of json.
-                            stream.Read(numberBuffer, 0, 4);
-                            currentDataLength = BitConverter.ToInt32(numberBuffer, 0);
+                            currentDataLength = BitConverter.ToInt32(numberBuffer, 4);
                             // Skip length of json.
                             stream.Position += currentDataLength;
                         }

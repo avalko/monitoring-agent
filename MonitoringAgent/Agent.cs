@@ -17,40 +17,61 @@ namespace MonitoringAgent
     public class Agent
     {
         public const string SettingsFilename = "settings.json";
-
-        public static Settings Settings { get; private set; } = new Settings();
+        public static Settings Settings { get; private set; }
 
         private static List<IMonitor> _monitors = new List<IMonitor>();
         private static JsonHistory _history;
         private static TcpListener _listener;
         private static bool _runned;
 
+        /// <summary>
+        /// Initializing the monitoring agent (settings, logging, monitors)
+        /// </summary>
         public static void Init()
         {
             _Init();
         }
 
+        /// <summary>
+        /// 1. The HTTP server is started.
+        /// 2. All monitors update their state every second.
+        /// </summary>
         public static async void Start()
         {
+            // If the server is already running, we exit.
             if (_runned)
                 return;
+
+            // At this point, the settings must be loaded/initialized.
+            if (Settings == null)
+                throw new NullReferenceException(nameof(Settings));
 
             _runned = true;
 
             _listener = new TcpListener(IPAddress.Any, Settings.AgentPort);
+            // IMPORTANT. Otherwise, with an abnormal termination, we can get exception "Adress already in use"
             _listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             _listener.Start();
 
+            // Starting an infinite loop of the HTTP server.
             new Thread(async () =>
             {
+                // Continue to execute only while the server is running.
                 while (_runned)
                 {
+                    // IMPORTANT. Otherwise AcceptTcpClient blocks the thread and
+                    // we can not shut down the server correctly.
                     if (_listener.Pending())
                     {
                         try
                         {
                             var client = _listener.AcceptTcpClient();
+                            // Sarting the new client's handler in the new thread from the pool.
+                            // Theoretically, many threads will not be executed simultaneously.
+                            // Because the load on the monitoring server should not be high.
+                            // So, not need to wait long for the thread to free :)
                             ThreadPool.QueueUserWorkItem(_NewClientProcess, client);
+                            // To not wait 100ms before checking for a new connection.
                             continue;
                         }
                         catch (Exception e)
@@ -58,12 +79,15 @@ namespace MonitoringAgent
                             Log.Warning("TCP Server Error: " + e.ToString());
                         }
                     }
+
                     await Task.Delay(100);
                 }
             }).Start();
 
             Log.Info("TCP server started.");
 
+            // Starting the main server.
+            // Every second we update the status of monitors.
             while (_runned)
             {
                 await Task.Delay(1000);
@@ -175,6 +199,7 @@ namespace MonitoringAgent
         private static void _Init()
         {
             _InitSettings();
+            _InitLogging();
             _InitMonitors();
 
             _history = new JsonHistory();
@@ -184,20 +209,14 @@ namespace MonitoringAgent
         {
             if (reInit || !File.Exists(SettingsFilename))
             {
-                try
-                {
-                    File.WriteAllText(SettingsFilename, JsonConvert.SerializeObject(Settings));
-                }
-                catch
-                {
-                    Console.WriteLine($"Error write to \"{Path.GetFullPath(SettingsFilename)}\"!");
-                    Environment.Exit(-1);
-                }
+                _WriteDefaultToSettingsFile();
+                return;
             }
 
+            string settingsInJson = "";
             try
             {
-                Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsFilename));
+                settingsInJson = File.ReadAllText(SettingsFilename);
             }
             catch
             {
@@ -205,6 +224,34 @@ namespace MonitoringAgent
                 Environment.Exit(-1);
             }
 
+            try
+            {
+                Settings = JsonConvert.DeserializeObject<Settings>(settingsInJson);
+                if (!Settings.IsCorrect())
+                    throw new Exception();
+            }
+            catch
+            {
+                _WriteDefaultToSettingsFile();
+            }
+        }
+
+        private static void _WriteDefaultToSettingsFile()
+        {
+            try
+            {
+                Settings = new Settings();
+                File.WriteAllText(SettingsFilename, JsonConvert.SerializeObject(Settings));
+            }
+            catch
+            {
+                Console.WriteLine($"Error write to \"{Path.GetFullPath(SettingsFilename)}\"!");
+                Environment.Exit(-1);
+            }
+        }
+
+        private static void _InitLogging()
+        {
             if (!Directory.Exists(Settings.LogDir))
             {
                 try

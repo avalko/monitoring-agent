@@ -10,11 +10,6 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
-            AssemblyLoadContext.Default.Unloading += delegate
-            {
-                Agent.Stop();
-                Log.Info("Good bye!");
-            };
 
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
@@ -22,10 +17,44 @@ namespace MonitoringAgent
                 return 1;
             }
 
+            string firstArgument = args.FirstOrDefault();
+
+            switch (firstArgument)
+            {
+                case "init":
+                case "i":
+                    _InitMode();
+                    break;
+                case "daemon":
+                case "d":
+                    _NormalMode(true);
+                    break;
+                default:
+                    _NormalMode(false);
+                    break;
+            }
+
+            return 0;
+        }
+
+        private static void _InitMode()
+        {
+            Agent.Init(true);
+            Console.WriteLine($"Your token: {Agent.Settings.TokenString}");
+        }
+
+        private static void _NormalMode(bool isDaemonMode)
+        {
+            AssemblyLoadContext.Default.Unloading += delegate
+            {
+                Agent.Stop();
+                Log.Info("Good bye!");
+            };
+
             Agent.Init();
             Agent.Start();
 
-            if (Agent.Settings.DaemonMode || args.FirstOrDefault() == "daemon")
+            if (Agent.Settings.DaemonMode || isDaemonMode)
             {
                 Log.Info("Daemon started.");
                 Thread.Sleep(Timeout.Infinite);
@@ -35,8 +64,6 @@ namespace MonitoringAgent
 
             Console.Read();
             Agent.Stop();
-
-            return 0;
         }
     }
 }

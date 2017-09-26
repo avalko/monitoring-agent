@@ -1,9 +1,0 @@
-﻿{
-  "AgentPort": 5000,
-  "LogEnable": true,
-  "LogDir": "logs",
-  "DaemonMode": true,
-  "SaveHistory": 2678400, // month (in sec)
-  "AutoSave": 10, // (in sec)
-  "MaxReturn": 100
-}

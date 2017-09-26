@@ -8,6 +8,25 @@ namespace MonitoringAgent
 {
     public static class Log
     {
+        private static bool _initialized = false;
+
+        public static void Init()
+        {
+            if (!Directory.Exists(Agent.Settings.LoggingDirectory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Agent.Settings.LoggingDirectory);
+                    _initialized = true;
+                }
+                catch
+                {
+                    Log.Critical($"Can't create directory \"{Path.GetFullPath(Agent.Settings.LoggingDirectory)}\"!");
+                    Environment.Exit(-1);
+                }
+            }
+        }
+
         public static void Info(string message)
         {
             WriteLine("Information", message);
@@ -41,8 +60,8 @@ namespace MonitoringAgent
         private static void Append(string raw)
         {
             Console.WriteLine(raw);
-            if (Agent.Settings.LogEnable)
-                File.AppendAllText(Agent.Settings.LogDir + "/" + DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".log",
+            if (_initialized && Agent.Settings.LoggingEnabled)
+                File.AppendAllText(Agent.Settings.LoggingDirectory + "/" + DateTime.Now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".log",
                                    raw + "\n" + new string('-', 50) + "\n");
         }
     }

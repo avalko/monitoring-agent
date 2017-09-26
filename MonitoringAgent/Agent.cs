@@ -14,9 +14,11 @@ using System.Reflection;
 
 namespace MonitoringAgent
 {
-    public class Agent
+    public static class Agent
     {
         public const string SettingsFilename = "settings.json";
+        public const string SettingsFilenameBackup = "settings-backup-{0}.json";
+
         public static Settings Settings { get; private set; }
 
         private static List<IMonitor> _monitors = new List<IMonitor>();
@@ -27,9 +29,9 @@ namespace MonitoringAgent
         /// <summary>
         /// Initializing the monitoring agent (settings, logging, monitors)
         /// </summary>
-        public static void Init()
+        public static void Init(bool onlySettings = false)
         {
-            _Init();
+            _Init(onlySettings);
         }
 
         /// <summary>
@@ -138,7 +140,7 @@ namespace MonitoringAgent
 
         private static string _GetHistoryJson(int last)
         {
-            return "{" + _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturn))
+            return "{" + _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturnHistoryItems))
                                  .Select(item => $"\"{item.TimeStamp}\": {item.Json}").JoinString() + "}";
         }
 
@@ -196,18 +198,45 @@ namespace MonitoringAgent
             }
         }
 
-        private static void _Init()
+        private static void _Init(bool onlySettings)
         {
-            _InitSettings();
-            _InitLogging();
+            if (onlySettings)
+            {
+                _InitSettings(true);
+                return;
+            }
+            else
+            {
+                _InitLogging();
+                _InitSettings(false);
+            }
             _InitMonitors();
 
             _history = new JsonHistory();
         }
 
-        private static void _InitSettings(bool reInit = false)
+        private static void _InitSettings(bool forceRewrite)
         {
-            if (reInit || !File.Exists(SettingsFilename))
+            if (forceRewrite)
+            {
+                if (File.Exists(SettingsFilename))
+                {
+                    Console.WriteLine("Settings already exist. Overwrite? (enter \"yes\" or \"y\")");
+                    string input = Console.ReadLine();
+                    if (input == "y" || input == "yes")
+                    {
+                        _WriteDefaultToSettingsFile();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ok. Good bye.");
+                        Environment.Exit(0);
+                    }
+                }
+                return;
+            }
+
+            if (!File.Exists(SettingsFilename))
             {
                 _WriteDefaultToSettingsFile();
                 return;
@@ -220,19 +249,35 @@ namespace MonitoringAgent
             }
             catch
             {
-                Log.Critical($"Error read \"{Path.GetFullPath(SettingsFilename)}\"!");
+                Log.Critical($"Error reading file: \"{Path.GetFullPath(SettingsFilename)}\"!");
                 Environment.Exit(-1);
             }
 
             try
             {
                 Settings = JsonConvert.DeserializeObject<Settings>(settingsInJson);
+
                 if (!Settings.IsCorrect())
-                    throw new Exception();
+                {
+                    Log.Critical("The settings file is not in the correct format! Settings have been reset!");
+
+                    try
+                    {
+                        File.Copy(SettingsFilename, string.Format(SettingsFilenameBackup, DateTime.Now.ToString("yyyyMMddHHmmss")));
+                    }
+                    catch
+                    {
+                        Log.Critical($"Error saving old settings!");
+                        Environment.Exit(-1);
+                    }
+
+                    _WriteDefaultToSettingsFile();
+                }
             }
             catch
             {
-                _WriteDefaultToSettingsFile();
+                Log.Critical($"Loading error: \"{Path.GetFullPath(SettingsFilename)}\"!");
+                Environment.Exit(-1);
             }
         }
 
@@ -241,29 +286,18 @@ namespace MonitoringAgent
             try
             {
                 Settings = new Settings();
-                File.WriteAllText(SettingsFilename, JsonConvert.SerializeObject(Settings));
+                File.WriteAllText(SettingsFilename, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
             catch
             {
-                Console.WriteLine($"Error write to \"{Path.GetFullPath(SettingsFilename)}\"!");
+                Console.WriteLine($"Error writing to file \"{Path.GetFullPath(SettingsFilename)}\"!");
                 Environment.Exit(-1);
             }
         }
 
         private static void _InitLogging()
         {
-            if (!Directory.Exists(Settings.LogDir))
-            {
-                try
-                {
-                    Directory.CreateDirectory(Settings.LogDir);
-                }
-                catch
-                {
-                    Log.Critical($"Can't create directory \"{Path.GetFullPath(Settings.LogDir)}\"!");
-                    Environment.Exit(-1);
-                }
-            }
+            Log.Init();
         }
 
         private static void _InitMonitors()
@@ -275,7 +309,7 @@ namespace MonitoringAgent
                 if (type.GetInterfaces().Contains(typeof(IMonitor)) &&
                     type.CustomAttributes.Any(attr => attr.AttributeType == typeof(MonitorAttribute)))
                 {
-                    Log.Info($"Init Register monitor: {type.Name}");
+                    Log.Info($"Registered monitor: {type.Name}");
                     var monitor = (IMonitor)Activator.CreateInstance(type);
                     monitor.Tag = ((MonitorAttribute)monitor.GetType().GetTypeInfo().GetCustomAttribute<MonitorAttribute>())
                                     .Tag;

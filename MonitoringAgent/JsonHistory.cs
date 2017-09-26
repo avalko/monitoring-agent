@@ -65,9 +65,9 @@ namespace MonitoringAgent
 
         public void ClearHistoryIfOverflow()
         {
-            if (_history.Count > Agent.Settings.SaveHistory)
+            if (_history.Count > Agent.Settings.SaveHistorySeconds)
             {
-                _history.RemoveRange(0, _history.Count - Agent.Settings.SaveHistory);
+                _history.RemoveRange(0, _history.Count - Agent.Settings.SaveHistorySeconds);
             }
         }
 
@@ -87,7 +87,7 @@ namespace MonitoringAgent
 
         public void AutoSave()
         {
-            if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Agent.Settings.AutoSave))
+            if ((DateTime.Now - _lastHistorySave) > TimeSpan.FromSeconds(Agent.Settings.AutoSaveHistorySeconds))
             {
                 Flush();
                 _lastHistorySave = DateTime.Now;

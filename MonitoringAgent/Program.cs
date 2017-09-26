@@ -11,8 +11,10 @@ namespace MonitoringAgent
     {
         static int Main(string[] args)
         {
+#if !RELEASE
             Console.WriteLine("Wait debugger...");
             Console.ReadLine();
+#endif
 
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {

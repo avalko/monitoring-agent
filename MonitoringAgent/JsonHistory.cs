@@ -93,23 +93,21 @@ namespace MonitoringAgent
 
                             // Reset stream position.
                             stream.Position = 0;
-                            using (BinaryWriter bw = new BinaryWriter(stream))
+
+                            // Updating count of entries.
+                            Array.Copy(BitConverter.GetBytes(countOfHistoryItems + itemsCount), _currentHeader, 4);
+                            stream.Write(_currentHeader, 0, HEADER_LENGTH);
+
+                            // Goto end of file.
+                            stream.Position = stream.Length;
+
+                            // Adding all new entries.
+                            foreach (var item in items)
                             {
-                                // Updating count of entries.
-                                bw.Write(countOfHistoryItems + itemsCount);
-
-                                // Goto end of file.
-                                bw.BaseStream.Position = bw.BaseStream.Length;
-
-                                // Adding all new entries.
-                                foreach (var item in items)
-                                {
-                                    bw.Write(item.TimeStamp);
-                                    bw.Write(item.Json);
-                                }
-
-                                // Update file.
-                                bw.Flush();
+                                stream.Write(BitConverter.GetBytes(item.TimeStamp), 0, 4);
+                                stream.Write(BitConverter.GetBytes(item.Json.Length), 0, 4);
+                                var buffer = Encoding.UTF8.GetBytes(item.Json);
+                                stream.Write(buffer, 0, buffer.Length);
                             }
                         }
                     }

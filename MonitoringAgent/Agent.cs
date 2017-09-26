@@ -165,26 +165,35 @@ namespace MonitoringAgent
 
                 string firstLine = data.SplitLines().First();
                 string[] fullRequest = firstLine.SplitSpaces().Skip(1).First().Split('?');
-                string request = fullRequest.First();
+                var requestItems = fullRequest.First().Split('/').Skip(1); // skip empty "(/)token/..."
 
-                if (request == "history")
+                string token = requestItems.FirstOrDefault();
+                if (token == Agent.Settings.TokenString)
                 {
-                    string query = fullRequest.Skip(1).JoinString();
-                    int last = 100;
-                    if (!string.IsNullOrEmpty(query))
+                    string request = requestItems.Skip(1).FirstOrDefault();
+                    if (request == "history")
                     {
-                        var get = HttpUtility.ParseQueryString(query);
-                        if (get.HasKeys() && get.AllKeys.Contains("last") &&
-                            int.TryParse(get["last"], out int tmpLast))
+                        string query = fullRequest.Skip(1).JoinString();
+                        int last = 100;
+                        if (!string.IsNullOrEmpty(query))
                         {
-                            last = tmpLast;
+                            var get = HttpUtility.ParseQueryString(query);
+                            if (get.HasKeys() && get.AllKeys.Contains("last") &&
+                                int.TryParse(get["last"], out int tmpLast))
+                            {
+                                last = tmpLast;
+                            }
                         }
-                    }
 
-                    returnData += _GetHistoryJson(last);
+                        returnData += _GetHistoryJson(last);
+                    }
+                    else
+                        returnData += _GetJson();
                 }
                 else
-                    returnData += _GetJson();
+                {
+                    returnData += "{\"Status\":\"Bad token!\"}";
+                }
 
 
                 returnBytes = Encoding.UTF8.GetBytes(returnData);

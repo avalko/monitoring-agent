@@ -143,7 +143,7 @@ namespace MonitoringAgent
         private static string _GetHistoryJson(int last)
         {
             return "{" + _history.Take(Math.Min(Math.Max(last, 1), Settings.MaxReturnHistoryItems))
-                                 .Select(item => $"\"{item.TimeStamp}\": {item.Json}").JoinString() + "}";
+                                 .Select(item => $"\"{item.TimeStamp}\": {item.Json}").JoinString(",") + "}";
         }
 
         private static async void _NewClientProcess(object arg)
